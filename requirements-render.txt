@@ -1,0 +1,2 @@
+# Optional report rendering only; not required by the plugin or offline starter.
+playwright==1.56.0

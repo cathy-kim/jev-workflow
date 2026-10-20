@@ -1,0 +1,426 @@
+{
+  "scope": "Public technical references; historical reading notes, not live API or benchmark verification. Recheck current contracts before use.",
+  "sources": [
+    {
+      "id": "S1",
+      "title": "TypeSafe Introduction",
+      "requested_url": "https://docs.typesafe.ai/introduction",
+      "resolved_url": "https://docs.typesafe.ai/introduction",
+      "findings": [
+        "Jev는 state에 대한 타입 판정 모델이다.",
+        "Choice/Score/Noul 혼합 요청; 각 질문은 동일 state를 독립 평가한다."
+      ],
+      "caveats": [
+        "문서의 지연 설명은 SLA/무료 과금/정확도 보장이 아니다."
+      ]
+    },
+    {
+      "id": "S2",
+      "title": "TypeSafe System One API",
+      "requested_url": "https://docs.typesafe.ai/api",
+      "resolved_url": "https://docs.typesafe.ai/api/system-one",
+      "findings": [
+        "POST /v1/systemone; Bearer; model/state/questions 필수; assets 선택.",
+        "state string/object/array; questions map 최소1. Choice criteria map1~255, Score array1~10.",
+        "instructions는 선택 string/object/array/null; Choice 설명 null 허용; Score 레벨 null 불가.",
+        "응답 model/answers/usage 필수; Noul type+noul; Choice type+choice+confidence+probabilities; Score type+score+confidence+legend+probabilities."
+      ],
+      "caveats": [
+        "일부 primitive 예제 model 생략은 HTTP 기본값의 증거가 아니다.",
+        "스키마 선택성과 애플리케이션 권장 정책을 구분한다."
+      ]
+    },
+    {
+      "id": "S3",
+      "title": "TypeSafe Models",
+      "requested_url": "https://docs.typesafe.ai/models",
+      "resolved_url": "https://docs.typesafe.ai/models",
+      "findings": [
+        "jev-latest→jev-1.13.0; jev-preview→jev-1.14.0; 최신 릴리스1.14는 2026-10-14.",
+        "기본 요청64k/질문32k tokens; long-context header opt-in 시 둘다262k.",
+        "per_request=state+all questions; per_question=state+one question.",
+        "입력 $0.042/Mtok, 출력 무료; org별 tokens/sec 및 requests/sec.",
+        "고객 요청/응답 학습 미사용; enterprise ZDR 별도.",
+        "GET /v1/models는 현재 별칭 중심이며 버전 ID도 허용; 영어 우세/CJK 성능 주의."
+      ],
+      "caveats": [
+        "별칭은 이동한다.",
+        "TypeSafe token 한도를 중개 provider에 전이하지 않는다.",
+        "모델표 Text와 실험 이미지 문서가 별도다."
+      ]
+    },
+    {
+      "id": "S4",
+      "title": "TypeSafe Choice",
+      "requested_url": "https://docs.typesafe.ai/primitives/choice",
+      "resolved_url": "https://docs.typesafe.ai/primitives/choice",
+      "findings": [
+        "최대확률 옵션을 choice로 반환하고 전체 확률/분포 confidence 제공.",
+        "질문 ID는 모델에 안 보이고 옵션명/설명은 보인다.",
+        "최대255 옵션; 설명에 string/object/array/null."
+      ],
+      "caveats": [
+        "none-of-the-above도 항상 잘 작동하지 않는다.",
+        "what/not_for/examples는 임의 JSON 키이다."
+      ]
+    },
+    {
+      "id": "S5",
+      "title": "TypeSafe Score",
+      "requested_url": "https://docs.typesafe.ai/primitives/score",
+      "resolved_url": "https://docs.typesafe.ai/primitives/score",
+      "findings": [
+        "criteria의 위치0..n-1가 레벨; score=Σi*p_i.",
+        "HTTP probabilities/legend 키는 문자열; Python SDK는 정수.",
+        "모델은 레벨 숫자/이웃 레벨을 보지 않는다."
+      ],
+      "caveats": [
+        "문서는2개 이상 권장, 스키마는 minItems1.",
+        "평균값이 같은 다른 분포가 존재; 높은 confidence는 정확도 보증 아님."
+      ]
+    },
+    {
+      "id": "S6",
+      "title": "TypeSafe Confidence",
+      "requested_url": "https://docs.typesafe.ai/confidence",
+      "resolved_url": "https://docs.typesafe.ai/confidence",
+      "findings": [
+        "Noul 별도 confidence 없음; 로컬 파생 abs(2p-1).",
+        "Choice C=(pmax-1/n)/(1-1/n).",
+        "Score m=argmax p; D=Σ|i-(n-1)/2|/n; C=max(0,1-Σp_i|i-m|/D)."
+      ],
+      "caveats": [
+        "n=1은 공식 분모0; 서버 confidence 동작 미확인.",
+        "Score 예제는 첫 최대값을 선택하지만 서버 tie 규약 독립 검증 아님.",
+        "confidence는 정답률/권한이 아니다."
+      ]
+    },
+    {
+      "id": "S7",
+      "title": "TypeSafe Quickstart",
+      "requested_url": "https://docs.typesafe.ai/introduction/quickstart",
+      "resolved_url": "https://docs.typesafe.ai/introduction/quickstart",
+      "findings": [
+        "Python typesafe-sdk/typesafe_sdk/system_one; JS @typesafe-ai/sdk/systemOne.",
+        "Python3.10+, Node20+, 직접 TS22.18+; TYPESAFE_API_KEY.",
+        "공통 raw HTTP endpoint는 /v1/systemone."
+      ],
+      "caveats": [
+        "문서 예제 출력은 실행 결과가 아니고 버전에 따라 바뀐다.",
+        "설치 권고가 조사 중 설치 허가를 뜻하지 않는다."
+      ]
+    },
+    {
+      "id": "S8",
+      "title": "DeepEval JevEval",
+      "requested_url": "https://deepeval.com/docs/metrics-jev-eval",
+      "resolved_url": "https://deepeval.com/docs/metrics-jev-eval",
+      "findings": [
+        "Noul=P(true); Score expected index/(n-1); Choice credit remains local",
+        "N/A mass >=0.5 excludes; empty applicable set scores 1, including strict",
+        "Strict mode uses Noul threshold and top option, not probability 1",
+        "Reason deterministically verbalizes returned values; no rationale extraction; min confidence includes N/A"
+      ],
+      "caveats": [
+        "모델 호출·설치 없이 문서와 고정 Python 소스만 확인",
+        "문서의 same test case always 문구를 버전 간 추론 동일성 보장으로 확대하지 않음"
+      ]
+    },
+    {
+      "id": "S9",
+      "title": "OpenRouter Jev",
+      "requested_url": "https://openrouter.ai/docs/guides/community/jev",
+      "resolved_url": "https://openrouter.ai/docs/guides/community/jev",
+      "findings": [
+        "Current browser: Jev 1.14, text+images, Box; 262144-token context",
+        "Decisions /api/alpha/decisions vs SDK /api/v1/systemone",
+        "Box returns coordinates even for absent targets; pair existence Noul"
+      ],
+      "caveats": [
+        "extractor 재조회는 1.13/text/32000 본문 반환; browser DOM으로 최신 렌더링 재확인",
+        "직접 urllib GET 및 .md GET은 HTTP 403; 실제 inference/가격·정확도 미시험"
+      ]
+    },
+    {
+      "id": "S10",
+      "title": "OpenRouter Multimodal Decisions",
+      "requested_url": "https://openrouter.ai/docs/guides/community/multimodal-decisions",
+      "resolved_url": "https://openrouter.ai/docs/guides/community/multimodal-decisions",
+      "findings": [
+        "Image data URL part is not Responses input_image; Jev supports nested parts and PNG/JPEG",
+        "Clef Omni alone reads audio/video per this page; 2fps video",
+        "Clef/Flash text truncation may be silent; Mercury invalid media can produce 422",
+        "Jev dimension/pixel/file/body/processed image bounds are separate"
+      ],
+      "caveats": [
+        "extractor 재조회가 이미지 전용 구본문 반환; browser DOM으로 audio/video/Jev1.14 내용 재확인",
+        "실이미지 전송·resize·한도 enforcement 미시험"
+      ]
+    },
+    {
+      "id": "S11",
+      "title": "OpenAI Decisions guide",
+      "requested_url": "https://developers.openai.com/api/docs/guides/decisions",
+      "resolved_url": "https://developers.openai.com/api/docs/guides/decisions",
+      "findings": [
+        "POST /v1/decisions with input and questions array, model gpt-6-luna",
+        "Answers array; predicate probability; choice values may be boolean|string; refusal per-question",
+        "Detailed token usage not OpenRouter usage.cost",
+        "Official reference allows remote HTTP(S) images while an extracted guide variant disallows them"
+      ],
+      "caveats": [
+        "HTML/extracted Markdown snapshots disagree about remote URLs; prefer endpoint reference, common implementation uses data URLs",
+        "Confidence formula equivalence to TypeSafe not established",
+        "Public beta and documentation only; no account/ZDR/contract/inference verification"
+      ]
+    },
+    {
+      "id": "S12",
+      "title": "Beacon Cross-Harness Memory",
+      "requested_url": "https://docs.beacon.sh/concepts/cross-harness-memory.md",
+      "resolved_url": "https://docs.beacon.sh/concepts/cross-harness-memory.md",
+      "findings": [
+        "Explicit evaluator invocation only; hooks/dry-run no evaluator calls",
+        "task_success >= .50 and mean of 3 >= .60 required for candidate",
+        "Candidate probability is not extracted lesson text; user review/approval required",
+        "Cloud no evaluator and no automatic local/Cloud memory replication"
+      ],
+      "caveats": [
+        "extractor second response omitted Cloud and new project-scope rules; direct HTTP markdown and pinned repository concept resolve",
+        "Cloud plan/permission and actual memory workflow not exercised"
+      ]
+    },
+    {
+      "id": "R1",
+      "title": "AnyJev",
+      "requested_url": "https://github.com/nokia-applied-research/AnyJev",
+      "resolved_url": "https://github.com/nokia-applied-research/AnyJev/tree/b03158e9ba18e84c01054aaa393481925088db07",
+      "findings": [
+        "0.3.0의 Decider는 raw/L0, Tacit은 one_forward/cot로 분리된다. L1/L2는 제거되어 0.2.0에만 남아 있다.",
+        "L0는 옵션 회전과 label prior 보정이며 정답 label 기반 confidence calibration이 아니다. require=L0는 readout 수준 계약만 강제한다.",
+        "Tacit adaptive는 낮은 margin을 자체 reasoning에 재질의하며 max_cot_share=0.2/cot_window=1000/cot_max_tokens=8192 기본값을 노출한다.",
+        "HTTP gateway는 /v1/decide, /v1/stats, /health이며 기본 loopback, 자체 인증 없음.",
+        "BANKING77 20-way 300건, JevBench public 231건, bev-decision test 46320건 및 별도 Decision Index 기록을 서로 구분해야 한다."
+      ],
+      "caveats": [
+        "TypeSafe Jev와 비제휴인 독립 구현이다. Jev API 클라이언트나 동일 가중치가 아니다.",
+        "adaptive cap 포화 시 저확신 one_forward 답을 그대로 유지한다. 사람 검토나 fail-closed 승인 gate가 아니다.",
+        "일반 letter readout 최대 26옵션. Decision Index 예제는 별도 letter+digit 경로이다.",
+        "n=300의 5% risk coverage는 고분산이며 agent-loop 평가 미완료라고 명시한다.",
+        "Decision Index 저장 JSON maintainer note는 running prior의 process/history 의존과 submitted environment provenance mismatch를 기록한다.",
+        "Qwen3.5 Tacit에는 transformers>=5가 필요하지만 hf extra는 >=4.53 범위이다."
+      ]
+    },
+    {
+      "id": "R2",
+      "title": "DeepEval",
+      "requested_url": "https://github.com/confident-ai/deepeval",
+      "resolved_url": "https://github.com/confident-ai/deepeval",
+      "findings": [
+        "Actual Python formulas match primary JevEval docs; ties use first insertion",
+        "Question weight>0; Score 2–10 unique nonempty levels; Choice >=2, at least one non-None credit",
+        "TypeSafeModel translates primitives and normalizes SDK output; cost derived from configured input price",
+        "Dotenv import and PostHog opt-out independent of judge/cloud data flows"
+      ],
+      "caveats": [
+        "Repository root and targeted files only, not whole-codebase audit",
+        "Six isolated assertions on selected pure upstream functions, not SDK or pytest suite"
+      ]
+    },
+    {
+      "id": "R3",
+      "title": "Jev-as-a-Judge",
+      "requested_url": "https://github.com/patchy631/jev-as-judge",
+      "resolved_url": "https://github.com/patchy631/jev-as-judge/tree/d8d743d0144258429deee20f2e4fbebb86a84d8a",
+      "findings": [
+        "10개의 합성 frozen trace, 구조검사 후 3 Noul과 1 Score를 하나의 요청으로 평가한다.",
+        "python -m jev_judge.cli --mode demo와 unittest가 네트워크 없는 핵심 경로이다. demo 모델은 DEMO-hand-authored-not-Jev.",
+        "live는 TypeSafe /v1/systemone 호출. 구조 실패 한 건을 제외한 초기 요청 9회, retries=2로 추가 청구 가능.",
+        "Opik 경로는 native 플러그인이 아닌 BaseMetric 어댑터이며 dataset/experiment 쓰기와 별도 Jev 재호출을 수행한다.",
+        "상태 allowlist는 request/policy/tool_calls/final_answer이며 gold/demo는 제외한다.",
+        "코드는 확률 유한성/합/score 기대값 일치, 모델 이름, rubric 키 검증을 수행한다."
+      ],
+      "caveats": [
+        "임계값 0.2/0.8, helpfulness 0.75, confidence 0.6은 예시값이지 도메인 보정 결과가 아니다.",
+        "자동 escalation/background worker/환불 실행 없음. review는 기록일 뿐이다.",
+        "Opik 어댑터의 METRIC_ERRORS 허용으로 완료 메시지만 성공 판정하면 안 된다.",
+        "저장소 license 없음. README가 언급하는 article.md와 VALIDATION.md는 조회 tree에 없다.",
+        "실제 Jev 정확도/latency나 인증된 Opik 업로드 재현은 이번 조사에서 수행하지 않음."
+      ]
+    },
+    {
+      "id": "R4",
+      "title": "Opik",
+      "requested_url": "https://github.com/comet-ml/opik",
+      "resolved_url": "https://github.com/comet-ml/opik",
+      "findings": [
+        "Self-host observability does not make external judge local",
+        "TypeSafe wrapper logs questions/answers/usage, excludes custom headers",
+        "OpenAI Decisions source logs input/questions and answers; parses Responses-format usage",
+        "Mocked tests cover sync/async, errors, nesting, duplicate wrapping, tracing off"
+      ],
+      "caveats": [
+        "Public guide Supported Methods omitted Decisions while pinned source implements it",
+        "Repository main moved between root extraction and tree lookup; both SHAs recorded",
+        "No package installation or release capability verification; upstream tests read but not run"
+      ]
+    },
+    {
+      "id": "R5",
+      "title": "JevGrep",
+      "requested_url": "https://github.com/dzhng/jevgrep",
+      "resolved_url": "https://github.com/dzhng/jevgrep/tree/7970cc6c096c48dd31ab1c740e6f41ee6df2aebc",
+      "findings": [
+        "Node22+ CLI jg가 계층 디렉터리/파일/선언 relevance를 판단해 경로·line reference·verbatim source를 반환한다.",
+        "Vercel/TypeSafe/OpenRouter/OpenCode 및 custom TypeSafe-compatible endpoint 지원. 현재 provider 설정은 저장 config에서 읽으며 환경변수 key override는 무시한다.",
+        "jg files ROOT --list는 key/network 없이 송신 대상 후보 inventory를 보여준다. jg doctor는 synthetic API 요청이므로 offline 명령이 아니다.",
+        "소스가 선택 provider로 전송된다. 파일명 필터와 credential heuristic은 전체 파일 제외 방식이며 완전한 PII 제거가 아니다.",
+        "실행/검증 책임은 호출 coding agent에 남아 있고, retrieval result는 완전성 보장이 아니다.",
+        "기존 ~30%는 Jev 제외 Sol-only 10 task 실험. 0.4.3 재측정은 8/10 solve, 합산 25.8% 절감."
+      ],
+      "caveats": [
+        "10 tuned Python SWE-bench task, task당 1회, holdout/variance 실험 아님. 모든 언어·repo의 비용 우위를 입증하지 않는다.",
+        "0.5.0의 Jev 비용 59% 감소와 합산 비용 2–3% 증가는 동시에 성립한다.",
+        "resource_limit만 남은 incomplete 결과는 exit 0이다. stdout status/issues를 확인해야 한다.",
+        "include-sensitive는 필터를 우회한다. 비공개 repo 송신은 별도 승인과 provider retention 검토가 필요하다.",
+        "jg skill은 main의 스킬과 pinned installer를 가져오며 설치 여부와 provider 인증은 별개이다.",
+        "latest GitHub release v0.8.0과 조사 main SHA 및 과거 평가 artifact는 동일 버전이라고 가정할 수 없다."
+      ]
+    },
+    {
+      "id": "R6",
+      "title": "Beacon",
+      "requested_url": "https://github.com/Asymptote-Labs/agent-beacon",
+      "resolved_url": "https://github.com/Asymptote-Labs/agent-beacon",
+      "findings": [
+        "Local-first architecture still allows Cloud-preselected interactive setup and explicit forwarding",
+        "Evaluator bounded projection max80 events and text max1200; head/tail preservation with omitted marker",
+        "Compatibility questions/results reason is not Jev-generated rationale",
+        "Pattern redaction cannot detect all bare secrets; metadata-only forwarding differs from standard"
+      ],
+      "caveats": [
+        "Repository main moved between root extraction and tree lookup; both SHAs recorded",
+        "No hooks, MCP, database, installer or hosted evaluator executed",
+        "Public source privacy mechanisms are not assurance of complete secret removal"
+      ]
+    },
+    {
+      "id": "R7",
+      "title": "DeepEval tutorial",
+      "requested_url": "https://github.com/bguiz/evals-with-deepeval-tute",
+      "resolved_url": "https://github.com/bguiz/evals-with-deepeval-tute/tree/2583fb14b4766f82bb99b8a483fa6fee9b1240fc",
+      "findings": [
+        "요청 repo는 9개 Markdown 튜토리얼이며 runnable 앱은 별도 evals-with-deepeval-demo에 있다.",
+        "structural→fuzzy→judge를 같은 agent 응답에 적용하고 query별 앞선 실패 시 뒷단을 skip한다.",
+        "weighted 평균 대신 No contradiction AND Completeness를 독립 gate로 둔다.",
+        "SharedJevDecision asyncio.Lock으로 1 요청을 공유하되 _system_one_outcomes private API에 의존한다.",
+        "negative fixture를 scenario별 expected metric outcome으로 검증해 아무 AssertionError나 수용하는 pytest.raises 문제를 피한다.",
+        "문서의 tutorial-09 태그는 API422/raw404이며 tags API는 빈 배열. 공개 main 최종 구현은 읽을 수 있다.",
+        "main golden JSON 6개를 정적 대조해 structured 8/24, fuzzy 8/8, judge 8/16 및 세 쌍 alignment를 확인했다."
+      ],
+      "caveats": [
+        "문서의 git checkout tutorial-XX를 실행 가능한 것으로 무조건 전달하면 안 된다. 태그 복구 또는 검토한 main SHA checkout 필요.",
+        "구조/fuzzy metric 자체는 유료 호출이 없어도 full suite는 live agent를 부른다. mock judge failure도 Jev API 비용이 든다.",
+        "ToolCorrectnessMetric은 이 경로에서 호출하지 않으나 기본 모델 생성 때문에 OPENAI_API_KEY가 필요하다고 문서화한다.",
+        "튜토리얼 8문항·합성 failure와 80 pytest/72 eval case 결과는 upstream 예시이며 독립 benchmark가 아니다.",
+        "sequential pytest 순서에 의존하므로 xdist/random-order와 그대로 호환되지 않는다.",
+        "Tute/demo 모두 명시 라이선스 미발견."
+      ]
+    },
+    {
+      "id": "R8",
+      "title": "Unsloth Decision Model",
+      "requested_url": "https://unsloth.ai/docs/basics/train-your-own-decision-model-with-unsloth",
+      "resolved_url": "https://unsloth.ai/docs/basics/train-your-own-decision-model-with-unsloth",
+      "findings": [
+        "Clef-style head와 LoRA를 통해 생성 대신 여러 질문/옵션 점수를 한 pass에 계산하는 FastDecisionModel/DecisionTrainer 경로이다.",
+        "state/questions/gold 데이터 계약 및 choice/noul/0-based score 라벨을 문서화한다.",
+        "build_dataset의 skip report, split_holdout, 학습, calibrate, test evaluation, save/reload 순서를 제공한다.",
+        "Decision API에서 laya/default/jev-latest alias를 로컬 학습 모델로 보낼 수 있다고 설명한다.",
+        "공식 문서 benchmark는 mixed sources+typed-decisions, test 3000 rows의 범위를 명시한다."
+      ],
+      "caveats": [
+        "TypeSafe의 hosted Jev 가중치를 제공하거나 같은 모델을 학습한다는 의미가 아니다.",
+        "페이지 내 benchmark 설정(r64/1epoch), UI 권장(r16/2epoch/2e-4), code(r16/240steps/2e-5)가 다르다.",
+        "Colab notebook의 batch8/60steps/2e-4와 문서 code batch2/240steps/2e-5가 다르다.",
+        "free Colab은 GPU 자원 가용성과 quota가 보장된다는 뜻이 아니며 로컬 학습도 하드웨어 비용이 있다.",
+        "문서 serve 예제 0.0.0.0 bind는 네트워크 노출 검토가 필요하다.",
+        "private 데이터를 cloud notebook 또는 hub에 올리지 않도록 별도 data governance가 필요하다."
+      ]
+    },
+    {
+      "id": "P1",
+      "title": "Jev / RAG",
+      "requested_url": "https://x.com/akshay_pachaar/status/2105281570898849903",
+      "resolved_url": "https://x.com/akshay_pachaar/status/2105281570898849903",
+      "findings": [
+        "Hybrid dense+keyword retrieval/RRF 이후 Jev로 후보 relevance를 batch 판정하고 코드 threshold로 context를 선택하는 RAG 설계다.",
+        "query answerability와 injection 신호를 추가해 답변 생성을 생략할 수 있다고 설명한다.",
+        "retrieval shortlist에 없는 근거를 Jev가 복구하지 못하며 injection score는 security boundary가 아니라고 명시한다.",
+        "원문은 Opik judge 프로젝트를 추가 소개한다."
+      ],
+      "caveats": [
+        "아키텍처 설명이지 재현 benchmark가 아니다.",
+        "후보 passage는 질의와 함께 judge state에 제공되어야 한다. query만 보내서 C7을 판단할 수는 없다.",
+        "false-negative 필터가 recall을 떨어뜨릴 수 있으므로 retained-evidence recall과 downstream answer quality를 별도 검증해야 한다.",
+        "첨부 이미지/영상은 분석하지 않았다."
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "Jev / agent harness",
+      "requested_url": "https://x.com/akshay_pachaar/status/2109909532352917658",
+      "resolved_url": "https://x.com/akshay_pachaar/status/2109909532352917658",
+      "findings": [
+        "TrueForge harness+Jev issue matching+Daytona sandbox의 weekly client follow-up 예시다.",
+        "작성자는 40 requests에서 Opus-only와 같은 정확도 및 decision cost 150x 절감을 주장한다.",
+        "낮은 confidence를 Opus 재검토로 보내 5개 wrong match를 잡았다고 설명한다.",
+        "credential은 sandbox 밖, write는 approval 후라고 주장한다."
+      ],
+      "caveats": [
+        "150x는 decision-making 비교이며 총 agent 비용·Daytona 비용·review 비용 우위로 확대할 수 없다.",
+        "40건의 작성자 실험이며 반복/holdout/전체 원시 로그 검증은 하지 않았다.",
+        "TrueForge와 Daytona 구현 소스·보안 테스트는 독립 검증하지 않았다.",
+        "approval과 secret isolation은 원문 주장으로 읽었을 뿐 이번 조사에서 실행 검증하지 않았다."
+      ]
+    },
+    {
+      "id": "P3",
+      "title": "Jev 데이터 분석 에이전트",
+      "requested_url": "https://x.com/Sumanth_077/status/2107800513681182737",
+      "resolved_url": "https://x.com/Sumanth_077/status/2107800513681182737",
+      "findings": [
+        "Qwen 생성+Jev 리뷰+Vercel eve 실행/approval로 역할을 나눈 데이터 분석 에이전트다.",
+        "clarity gate→SQL intent gate→최종 row-grounding gate 세 지점을 설명한다.",
+        "single read-only SELECT, SQLite read-only, 200-row cap, WHERE 없는 query의 사람 승인은 deterministic control로 분리한다.",
+        "두 도구 inspect_schema/run_sql, local sales SQLite, Vercel AI Gateway Qwen, Gradio를 명시한다."
+      ],
+      "caveats": [
+        "소셜 원문의 구현 설명이며 구현 소스·보안 테스트는 독립 검증하지 않았다.",
+        "로컬 DB여도 schema/query/결과/답변 중 모델에 넣는 데이터는 외부로 나갈 수 있다.",
+        "best customer처럼 목표가 모호하면 clarify이며 임의 metric 선택을 자동화하지 않는다.",
+        "read-only 여부는 Jev 확률에 맡기지 않아야 한다."
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "Unsloth Colab",
+      "requested_url": "https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_5_%284B%29-Decision.ipynb",
+      "resolved_url": "https://raw.githubusercontent.com/unslothai/notebooks/f9d9cd045c3b9430ea56084aa7582835cf2c6bbd/nb/Qwen3_5_%284B%29-Decision.ipynb",
+      "findings": [
+        "raw GitHub ipynb JSON의 34 cells 중 code 16개를 읽었다. execution_count 전부 null, outputs 전부 빈 배열이다.",
+        "설치 cell은 torch2.8.0/transformers5.2.0/trl0.22.2와 Git main unsloth/zoo, kernel installation을 포함한다.",
+        "Qwen3.5-4B 4bit, LoRA r16, seq2048, batch8, grad accumulation4, max_steps60, lr2e-4이다.",
+        "holdout calibration과 별도의 typed-decisions test split evaluate를 구분한다.",
+        "local save qwen_lora는 실행 cell이고 upload/merge/reload는 주석 또는 if False로 비활성화되어 있다."
+      ],
+      "caveats": [
+        "노트북을 실행하지 않았다. 문서의 75–78% test accuracy와 ECE는 notebook 저장 output이 아닌 Markdown 작성자 주장이다.",
+        "T4에서는 Qwen3.5 fp16 NaN을 피하려 fp32로 훈련해 약2시간이라는 설명이 있다. 다른 GPU의 시간과 비교 조건을 섞지 말아야 한다.",
+        "install cell에 unpinned Git main과 upgrade가 있어 notebook SHA만 고정해도 완전한 dependency 재현성이 확보되지 않는다.",
+        "Colab은 cloud execution이며 local model API 사용과 다른 privacy boundary다.",
+        "문서와 code 설정 차이를 고정 후 test split 미사용 유지·개인정보 제거·GPU quota 확인이 선행되어야 한다."
+      ]
+    }
+  ]
+}
