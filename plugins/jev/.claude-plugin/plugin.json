@@ -1,0 +1,10 @@
+{
+  "name": "jev",
+  "version": "1.0.0",
+  "description": "Offline-first typed decision workflow: design, implement, test, evaluate, adopt. No hooks, MCP, credentials or automatic API calls.",
+  "author": {
+    "name": "cathy-kim"
+  },
+  "repository": "https://github.com/cathy-kim/jev-workflow",
+  "license": "MIT"
+}

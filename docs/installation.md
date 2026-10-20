@@ -1,0 +1,94 @@
+# Installation and portability
+
+The public edition is version **1.0.0**. The marketplace is `jev-workflow`, the plugin is `jev`, and the skill is `jev-decisions`. Installation supplies instructions and offline files only: no hooks, MCP server, API client, paid calls or credential discovery. This document describes user-initiated installation; the included tests do not modify installed settings.
+
+## Claude Code marketplace
+
+After the repository is published and reachable, run these commands inside Claude Code:
+
+```text
+/plugin marketplace add cathy-kim/jev-workflow
+/plugin install jev@jev-workflow
+/jev:jev-decisions
+```
+
+Use Claude Code's scope selection if you want project-scoped rather than user-wide installation. Start a fresh session if the new skill is not visible. A successful installation is not proof that a live provider integration works.
+
+Try a bounded prompt:
+
+```text
+/jev:jev-decisions Design and implement a support-routing contract.
+Use synthetic data only. Run the offline tests and report missing adoption approvals.
+Do not call any API or search for credentials.
+```
+
+## Project-local plugin without persistent installation
+
+From a checkout of this repository, launch Claude Code with a session-local plugin directory:
+
+```bash
+claude --plugin-dir ./plugins/jev
+```
+
+Then invoke `/jev:jev-decisions`. When working in another project, pass the absolute path to this checkout's `plugins/jev` directory instead. The plugin directory is self-contained. This launch option is not a marketplace installation and does not require copying settings or overwriting an existing command.
+
+You can validate the manifests without installing anything:
+
+```bash
+claude plugin validate ./plugins/jev
+claude plugin validate ./.claude-plugin/marketplace.json
+```
+
+## Runtime-neutral skill
+
+The only canonical skill is:
+
+```text
+plugins/jev/skills/jev-decisions/
+  SKILL.md
+  references/
+  templates/
+  scripts/
+```
+
+Copy that **whole directory**, not only `SKILL.md`, into a project-local skill directory supported by your runtime, or explicitly ask your assistant to load its `SKILL.md` by path. Preserve the relative layout so references, templates, tests and examples remain available. For a Claude Code project-local non-plugin skill, the conventional destination is `.claude/skills/jev-decisions/`; its invocation is `/jev-decisions`, not the plugin's namespaced command. Choose either the plugin or the copied skill to avoid ambiguous duplicates.
+
+For Hermes or any other skill-capable assistant, use that runtime's documented project-local skill registration or direct file-loading mechanism. This package does not require Hermes-specific metadata, a global skill directory, another skill, a plugin manager, or any secret-store integration. Do not assume all runtimes share an installation path or command syntax. An assistant without skill support can use the workflow as a normal document and run the Python scripts manually.
+
+## Runnable offline demo
+
+The starter targets Python 3.10+ and uses only the standard library. No `pip install`, provider key or network access is needed. From the repository root:
+
+```bash
+python3 -B examples/offline_demo.py
+```
+
+The demo discovers the checkout from its own file path, so an absolute invocation works from another directory too. It creates synthetic scaffolding in a temporary directory and cleans it up. It runs actual subprocesses and verifies their exit codes:
+
+| Case | Expected exit | Expected outcome |
+|---|---:|---|
+| init | 0 | Offline files created |
+| validate | 0 | Contract shape valid |
+| shadow | 3 | REVIEW / SHADOW_ONLY |
+| synthetic recommendation | 0 | ROUTE_RECOMMENDATION, no action |
+| high-impact policy | 2 | HOLD / HIGH_IMPACT |
+| malformed response | 2 | HOLD / INVALID_JSON |
+
+The demo itself exits 0 only if these expectations hold. It prints observed subprocess output, not model inference. Every gate outcome is recommendation-only. Synthetic approval/calibration flags and thresholds are branch-testing fixtures, not operational permission or recommended thresholds.
+
+To inspect or create persistent local scaffolding yourself, read the [offline starter](../plugins/jev/skills/jev-decisions/references/offline-starter.md).
+
+## Verify the package
+
+From the repository root:
+
+```bash
+python3 -B -m unittest discover -s plugins/jev/skills/jev-decisions/scripts -p 'test_decision_kit.py' -v
+python3 -B -m unittest discover -s tests -p 'test_*.py' -v
+claude plugin validate ./plugins/jev
+claude plugin validate ./.claude-plugin/marketplace.json
+```
+
+The first command runs the 84-test offline contract suite. Package tests additionally check metadata, relative links, prohibited files, a relocated runtime-neutral copy, and the real demo exit codes. `-B` prevents bytecode caches in the distributed tree. Local tests use temporary directories; set `TMPDIR` to a trusted scratch directory if desired.
+
+No live API compatibility, model accuracy, calibration, current model availability, or production readiness follows from these checks. See [security boundaries](../SECURITY.md) before adapting the starter.

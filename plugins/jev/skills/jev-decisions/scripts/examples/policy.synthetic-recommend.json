@@ -1,0 +1,16 @@
+{
+  "mode": "recommend",
+  "purpose": "internal_ticket_routing",
+  "high_impact": false,
+  "approved": true,
+  "approval_ref": "SYNTHETIC/OFFLINE-TEST-ONLY",
+  "calibrated": true,
+  "calibration_ref": "SYNTHETIC/OFFLINE-TEST-ONLY",
+  "pinned_model": "jev-1.14.0",
+  "thresholds": {
+    "evidence_min": 0.9,
+    "department_probability_min": 0.9,
+    "department_confidence_min": 0.8,
+    "department_margin_min": 0.2
+  }
+}

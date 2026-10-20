@@ -1,0 +1,16 @@
+{
+  "mode": "shadow",
+  "purpose": "internal_ticket_routing",
+  "high_impact": false,
+  "approved": false,
+  "approval_ref": null,
+  "calibrated": false,
+  "calibration_ref": null,
+  "pinned_model": "jev-1.14.0",
+  "thresholds": {
+    "department_confidence_min": null,
+    "department_margin_min": null,
+    "department_probability_min": null,
+    "evidence_min": null
+  }
+}

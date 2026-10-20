@@ -1,0 +1,34 @@
+{
+  "model": "jev-1.14.0",
+  "state": "SYNTHETIC/OFFLINE: I have a question about a duplicate subscription charge.",
+  "questions": {
+    "evidence_sufficient": {
+      "type": "noul",
+      "instructions": "Is there enough explicit evidence to recommend an internal ticket department?",
+      "criteria": {
+        "true": "The ticket explicitly identifies the issue; no guessing is needed.",
+        "false": "Missing, ambiguous, contradictory or unsupported evidence."
+      }
+    },
+    "department": {
+      "type": "choice",
+      "instructions": "Which internal team should review this ticket? Do not execute any action.",
+      "criteria": {
+        "billing": "Charges, invoices and payment questions; never authorize a refund.",
+        "shipping": "Delivery status and delays.",
+        "returns": "Return and exchange questions; never approve a return.",
+        "unknown": "Insufficient or contradictory evidence.",
+        "other": "An issue outside the listed departments."
+      }
+    },
+    "detail": {
+      "type": "score",
+      "instructions": "How detailed is the issue description?",
+      "criteria": [
+        "No detail",
+        "Partial detail",
+        "Complete detail"
+      ]
+    }
+  }
+}

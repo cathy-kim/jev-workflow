@@ -1,0 +1,42 @@
+{
+  "artifact_kind": "evaluation-plan-not-measured-results",
+  "dataset": {
+    "id": null,
+    "rights_confirmed": false,
+    "locale": null,
+    "calibration_count": null,
+    "holdout_count": null,
+    "split_unit": "person/thread/source"
+  },
+  "bundle": {
+    "provider": null,
+    "model_exact_id": null,
+    "question_version": null,
+    "parser_version": null,
+    "policy_version": null
+  },
+  "measurements": {
+    "confusion_matrix": null,
+    "coverage": null,
+    "selective_error": null,
+    "brier": null,
+    "ece_definition": null,
+    "ece": null,
+    "cost_per_item": null,
+    "p95_latency_ms": null,
+    "human_overturn_rate": null
+  },
+  "slices": [
+    "target_languages",
+    "ambiguous",
+    "missing_evidence",
+    "out_of_scope"
+  ],
+  "readiness": {
+    "offline_contract_tests_passed": false,
+    "live_evaluation_authorized": false,
+    "shadow_authorized": false,
+    "automatic_actions_authorized": false
+  },
+  "notes": "null means unmeasured. Do not fill missing measurements with zero or PASS."
+}

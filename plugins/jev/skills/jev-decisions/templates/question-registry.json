@@ -1,0 +1,38 @@
+{
+  "artifact_kind": "application-question-registry-not-provider-wire-json",
+  "schema_version": "1",
+  "question_version": "example-1",
+  "status": "illustrative-not-calibrated",
+  "locale": "en",
+  "purpose": "Recommend a human review queue for a fictional support question.",
+  "questions": {
+    "supported": {
+      "type": "noul",
+      "instructions": "Does the supplied evidence directly support answering this question?"
+    },
+    "queue": {
+      "type": "choice",
+      "instructions": "Which human review queue best matches the central request?",
+      "criteria": {
+        "billing": "Check billing and charge facts",
+        "technical": "Check feature usage or reported errors",
+        "other": "Outside these categories or unclear request"
+      }
+    },
+    "specificity": {
+      "type": "score",
+      "instructions": "How specific is the information needed to reproduce or verify the issue?",
+      "criteria": [
+        "No verifiable detail",
+        "Some detail but key facts missing",
+        "Key facts clearly supplied"
+      ]
+    }
+  },
+  "policy": {
+    "mode": "shadow",
+    "threshold_status": "unset-until-calibration",
+    "automatic_execution": false,
+    "missing_or_invalid": "human_review"
+  }
+}
