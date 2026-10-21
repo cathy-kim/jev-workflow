@@ -1,7 +1,7 @@
 ---
 name: jev-decisions
 description: "Use when designing or implementing typed Jev decisions. Design questions, implement adapters, test offline, evaluate quality, and adopt safely."
-version: 1.0.1
+version: 1.1.0
 license: MIT
 ---
 
@@ -27,6 +27,15 @@ Jev-style decisions use a closed answer space: Noul for a positive-event probabi
 - “Review readiness for shadow evaluation and list missing approvals.”
 
 Resolve paths relative to this loaded `SKILL.md`, not a machine-specific directory. In Claude Code the invocation is `/jev:jev-decisions`; other runtimes can load this file directly with its neighboring directories. No unrelated skill or runtime extension is required.
+
+## Research model selection
+
+For VideoJev, MJev-Spatial or Jeva requests, read the [research model selector](references/research-models.md), then the matching pinned paper-to-code reference. These are independent models, not TypeSafe endpoint features. Use [research_kit.py](scripts/research_kit.py) to plan a candidate or validate input offline; this does not install or run a model. Keep source/release blockers explicit and require separately approved runtime verification before claiming inference support.
+
+Examples:
+- “Use VideoJev research to design temporal grounding and validate a synthetic question list.”
+- “Check a spatial-point input and explain MJev-Spatial release blockers without running it.”
+- “Design Jeva null-aware candidate evaluation; distinguish joint and conditional probabilities.”
 
 ## 1. Design the decision boundary
 
