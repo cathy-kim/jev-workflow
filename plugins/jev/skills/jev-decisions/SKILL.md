@@ -1,7 +1,7 @@
 ---
 name: jev-decisions
 description: "Use when designing or implementing typed Jev decisions. Design questions, implement adapters, test offline, evaluate quality, and adopt safely."
-version: 1.0.0
+version: 1.0.1
 license: MIT
 ---
 
@@ -42,7 +42,7 @@ Resolve paths relative to this loaded `SKILL.md`, not a machine-specific directo
 
 Separate input validation, provider adapter, response validation, pure policy, audit and a separately authorized executor. See the [implementation playbook](references/implementation-playbook.md).
 
-- Pin the provider endpoint, exact model, contract and parser versions. Preserve raw-versus-derived values and provider-specific refusal or not-applicable states. Do not treat different providers as wire-compatible.
+- Pin the provider endpoint, exact model, contract and parser versions. Preserve raw-versus-derived values and provider-specific refusal or not-applicable states. Do not treat different providers as wire-compatible. For image/Box versions, per-request opt-in and alias changes, use the [version refresh checklist](references/typesafe-contract.md#version-refresh-checklist); the bundled tool stays text-only and offline.
 - Check answer ID sets, types, finite ranges, Choice keys, probability sums and Score scale. Reject unexpected or missing fields instead of repairing them into success.
 - Keep policy recommendation-only. Authentication, execution approval, idempotency and kill switches belong to a separate executor; inference retry must not retry actions.
 - Bound transport timeouts, concurrency, request and spending budgets. Retry only documented transient failures within a total budget; do not stack SDK and outer retries. Stop on invalid requests or authorization errors.
