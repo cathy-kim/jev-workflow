@@ -35,6 +35,12 @@ PUBLIC_SKILL_FILES = frozenset({
     "references/offline-starter.md",
     "references/providers-evaluation.md",
     "references/typesafe-contract.md",
+    "references/research-models.md",
+    "references/research-sources.json",
+    "references/videojev.md",
+    "references/mjev-spatial.md",
+    "references/jeva.md",
+    "scripts/research_kit.py",
     "scripts/decision_kit.py",
     "scripts/test_decision_kit.py",
     "scripts/examples/design.md",
@@ -78,9 +84,18 @@ def main() -> None:
     (DOCS / "downloads").mkdir(exist_ok=True)
     (DOCS / ".nojekyll").touch()
     shutil.copyfile(ROOT / "site/index.html", DOCS / "index.html")
+    research = DOCS / "research"
+    (research / "references").mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(ROOT / "site/research.html", research / "index.html")
+    references = ROOT / "plugins/jev/skills/jev-decisions/references"
+    for name in ("videojev.md", "mjev-spatial.md", "jeva.md", "research-models.md", "research-sources.json"):
+        source_file = references / name
+        if source_file.is_symlink() or not source_file.is_file():
+            raise ValueError(f"Research reference must be an approved regular file: {name}")
+        shutil.copyfile(source_file, research / "references" / name)
     source = (ROOT / "report/guide.html").read_text(encoding="utf-8")
     source = source.replace("</head>", f"<style>{WEB_CSS}</style></head>", 1)
-    nav = '<nav class="reader-nav" aria-label="Guide navigation"><a href="../">← Jev Workflow</a><a href="../downloads/Jev-Workflow-Guide.pdf">PDF ↓</a><a href="#p2">Contents / 목차</a><span>Public edition · technical snapshot, not live API verification</span></nav>'
+    nav = '<nav class="reader-nav" aria-label="Guide navigation"><a href="../">← Jev Workflow</a><a href="../downloads/Jev-Workflow-Guide.pdf">PDF ↓</a><a href="#p2">Contents / 목차</a><a href="../research/">Research models</a><span>Public edition · technical snapshot, not live API verification</span></nav>'
     source = source.replace("<body>", "<body>" + nav, 1)
     (DOCS / "guide/index.html").write_text(source, encoding="utf-8")
     shutil.copyfile(ROOT / "report/sources.json", DOCS / "guide/sources.json")

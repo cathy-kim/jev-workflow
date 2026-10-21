@@ -62,10 +62,10 @@ class ImageDocumentationTests(unittest.TestCase):
     def test_patch_version_and_zip_reference_parity(self):
         manifest = json.loads((ROOT / 'plugins/jev/.claude-plugin/plugin.json').read_text(encoding='utf-8'))
         marketplace = json.loads((ROOT / '.claude-plugin/marketplace.json').read_text(encoding='utf-8'))
-        self.assertEqual(manifest['version'], '1.0.1')
-        self.assertEqual(marketplace['metadata']['version'], '1.0.1')
-        self.assertEqual(marketplace['plugins'][0]['version'], '1.0.1')
-        self.assertIn('version: 1.0.1', (SKILL / 'SKILL.md').read_text(encoding='utf-8'))
+        self.assertEqual(manifest['version'], '1.1.0')
+        self.assertEqual(marketplace['metadata']['version'], '1.1.0')
+        self.assertEqual(marketplace['plugins'][0]['version'], '1.1.0')
+        self.assertIn('version: 1.1.0', (SKILL / 'SKILL.md').read_text(encoding='utf-8'))
         for archive, prefix in (('jev-plugin.zip', 'jev/skills/jev-decisions'),
                                 ('jev-decisions-skill.zip', 'jev-decisions')):
             with zipfile.ZipFile(ROOT / 'docs/downloads' / archive) as z:

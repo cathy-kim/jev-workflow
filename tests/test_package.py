@@ -29,7 +29,7 @@ class PackageTests(unittest.TestCase):
     def test_manifest(self):
         manifest = json.loads((PLUGIN / '.claude-plugin/plugin.json').read_text())
         self.assertEqual(manifest['name'], 'jev')
-        self.assertEqual(manifest['version'], '1.0.1')
+        self.assertEqual(manifest['version'], '1.1.0')
         self.assertEqual(manifest['repository'], PUBLIC_URL)
         self.assertEqual(manifest['author'], {'name': 'cathy-kim'})
         self.assertEqual(manifest['license'], 'MIT')
@@ -43,7 +43,7 @@ class PackageTests(unittest.TestCase):
         entry = marketplace['plugins'][0]
         self.assertEqual(entry['name'], 'jev')
         self.assertEqual(entry['source'], './plugins/jev')
-        self.assertEqual(entry['version'], '1.0.1')
+        self.assertEqual(entry['version'], '1.1.0')
         self.assertEqual(entry['repository'], PUBLIC_URL)
 
     def test_one_canonical_skill(self):
@@ -87,6 +87,9 @@ class PackageTests(unittest.TestCase):
             'SKILL.md',
             'references/implementation-playbook.md', 'references/typesafe-contract.md',
             'references/providers-evaluation.md', 'references/offline-starter.md',
+            'references/research-models.md', 'references/research-sources.json',
+            'references/videojev.md', 'references/mjev-spatial.md', 'references/jeva.md',
+            'scripts/research_kit.py',
             'templates/design-brief.md', 'templates/evaluation-record.json',
             'templates/question-registry.json', 'scripts/decision_kit.py',
             'scripts/test_decision_kit.py', 'scripts/examples/design.md',
@@ -130,10 +133,19 @@ class PackageTests(unittest.TestCase):
     def test_no_machine_paths_or_private_provenance(self):
         # Construct sensitive marker families instead of distributing actual identities.
         patterns = [r'/(?:Users|home)/[A-Za-z0-9_.-]+/', r'[A-Z]:\\Users\\',
-                    r'\b[0-9a-f]{40}\b',
                     r'-----BEGIN [A-Z ]*PRIVATE KEY-----']
+        catalog_path = SKILL / 'references/research-sources.json'
+        catalog = json.loads(catalog_path.read_text(encoding='utf-8'))
+        public_revisions = {
+            SKILL / 'references' / item['reference']: {a['revision'] for a in item['public_artifacts']}
+            for item in catalog['models']
+        }
+        public_revisions[catalog_path] = set().union(*public_revisions.values())
+        public_revisions[SKILL / 'scripts/research_kit.py'] = {item['code_revision'] for item in catalog['models']}
         for path in package_files():
             content = path.read_text(encoding='utf-8')
+            with self.subTest(file=str(path.relative_to(ROOT))):
+                self.assertFalse(set(re.findall(r'\b[0-9a-f]{40}\b', content)) - public_revisions.get(path, set()))
             for pattern in patterns:
                 with self.subTest(path=str(path.relative_to(ROOT)), pattern=pattern):
                     self.assertIsNone(re.search(pattern, content))
