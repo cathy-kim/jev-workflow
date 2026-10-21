@@ -22,7 +22,9 @@ jobs:
       - name: Core offline tests
         run: python3 -B -m unittest discover -s plugins/jev/skills/jev-decisions/scripts -p 'test_decision_kit.py' -v
       - name: Synthetic demo
-        run: python3 -B examples/offline_demo.py
+        run: |
+          python3 -B examples/offline_demo.py
+          python3 -B examples/research_demo.py
       - name: Package and site tests
         run: |
           python3 -B -m unittest discover -s tests -v
