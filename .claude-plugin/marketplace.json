@@ -5,12 +5,12 @@
   },
   "metadata": {
     "description": "Portable offline-first Jev decision workflow",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "plugins": [
     {
       "name": "jev",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "description": "Offline-first typed decision workflow: design, implement, test, evaluate, adopt. No hooks, MCP, credentials or automatic API calls.",
       "author": {
         "name": "cathy-kim"

@@ -1,5 +1,5 @@
 {
-  "scope": "Public technical references; historical reading notes, not live API or benchmark verification. Recheck current contracts before use.",
+  "scope": "Public technical references; historical reading notes, not live API or benchmark verification. Bounded refresh checked 2026-10-21: official TypeSafe Images, Box and model aliases only; other historical claims were not revalidated. Recheck current contracts before use.",
   "sources": [
     {
       "id": "S1",
@@ -44,7 +44,7 @@
         "GET /v1/models는 현재 별칭 중심이며 버전 ID도 허용; 영어 우세/CJK 성능 주의."
       ],
       "caveats": [
-        "별칭은 이동한다.",
+        "2026-10-21 live Models 본문에서 별칭만 재확인: latest→jev-1.13.0, preview→jev-1.14.0. 둘 다 1.13으로 표시한 텍스트 추출 캐시는 오래된 값이다. 별칭은 이동한다.",
         "TypeSafe token 한도를 중개 provider에 전이하지 않는다.",
         "모델표 Text와 실험 이미지 문서가 별도다."
       ]
@@ -188,6 +188,37 @@
       "caveats": [
         "extractor second response omitted Cloud and new project-scope rules; direct HTTP markdown and pinned repository concept resolve",
         "Cloud plan/permission and actual memory workflow not exercised"
+      ]
+    },
+    {
+      "id": "S13",
+      "title": "TypeSafe Images",
+      "requested_url": "https://docs.typesafe.ai/images",
+      "resolved_url": "https://docs.typesafe.ai/images",
+      "findings": [
+        "2026-10-21 확인: Jev 1.13과 1.14 모두 이미지 입력 지원.",
+        "이미지·Box는 기본 OFF이며 매 요청 TypeSafe-Danger-Zone-Images: true 필요.",
+        "PNG/JPEG assets를 state, instructions, criteria에서 참조한다."
+      ],
+      "caveats": [
+        "Dreamer-ready / not production-ready. 실제 미디어 전송·추론·정확도는 검증하지 않았다.",
+        "이미지·Box·별칭만 갱신했으며 전체 과거 보고서 재검증이 아니다. 오프라인 starter는 텍스트 전용이다."
+      ]
+    },
+    {
+      "id": "S14",
+      "title": "TypeSafe Box",
+      "requested_url": "https://docs.typesafe.ai/go/box",
+      "resolved_url": "https://docs.typesafe.ai/go/box",
+      "findings": [
+        "2026-10-21 확인: Box는 Jev 1.14 (jev-1.14.0) 필요; criteria 없음.",
+        "top, bottom, left, right는 0..1 정규화 좌표다.",
+        "대상이 없어도 항상 Box를 반환하며 not-found 결과는 없다. 같은 요청에 존재 여부 Noul을 넣고 존재 확률이 낮으면 Box를 무시한다."
+      ],
+      "caveats": [
+        "매 요청 이미지 opt-in 헤더 필요. Dreamer-ready / not production-ready.",
+        "공식 권장 confidence 임계값은 없다. 과거 OpenAPI nullable confidence를 현행 보장으로 단정하지 않는다.",
+        "문서 확인일 뿐 실제 Box 응답이나 live parser 호환 검증은 아니다."
       ]
     },
     {
