@@ -4,11 +4,13 @@ import argparse
 import json
 from pathlib import Path
 from playwright.sync_api import sync_playwright
+from sync_research_chapter import sync
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> None:
+    sync()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--browser", help="Optional path to an existing Chromium/Chrome executable")
     parser.add_argument("--output", type=Path, default=ROOT / "docs/downloads/Jev-Workflow-Guide.pdf")

@@ -62,6 +62,26 @@ class ResearchDocumentationTests(unittest.TestCase):
                     self.assertEqual((REFS / name).read_bytes(), z.read(prefix + '/references/' + name))
                 self.assertEqual((SKILL / 'scripts/research_kit.py').read_bytes(), z.read(prefix + '/scripts/research_kit.py'))
 
+    def test_full_guide_includes_authored_research_chapter(self):
+        chapter = (ROOT / 'report/research-chapter.html').read_text(encoding='utf-8').strip()
+        for name in ('report/guide.html', 'docs/guide/index.html'):
+            text = (ROOT / name).read_text(encoding='utf-8')
+            self.assertEqual(text.count('<!-- RESEARCH_CHAPTER_START -->'), 1)
+            self.assertIn(chapter, text)
+            self.assertEqual(re.findall(r'<section class="page" id="(p\d+)"', text), [f'p{i}' for i in range(1, 44)])
+            self.assertEqual(len(re.findall(r'<span>\d{1,2} / 43</span></footer>', text)), 43)
+            self.assertIn('href="#p36"', text)
+            for paper in ('2610.18615', '2610.22276', '2610.18773'):
+                self.assertIn('https://arxiv.org/abs/' + paper, text)
+        ledger = json.loads((ROOT / 'report/sources.json').read_text(encoding='utf-8'))
+        by_id = {item['id']: item for item in ledger['sources']}
+        self.assertEqual(len(by_id), len(ledger['sources']))
+        for code, paper in (('R9', 'P6'), ('R10', 'P7'), ('R11', 'P8')):
+            self.assertIn('/tree/', by_id[code]['resolved_url'])
+            self.assertIn('/html/', by_id[paper]['resolved_url'])
+        self.assertIn('eight-page', (ROOT / 'README.md').read_text(encoding='utf-8'))
+        self.assertIn('version **1.1.0**', (ROOT / 'docs/installation.md').read_text(encoding='utf-8'))
+
     def test_companion_is_discoverable_and_honest(self):
         page = (ROOT / 'site/research.html').read_text()
         self.assertEqual(page, (ROOT / 'docs/research/index.html').read_text())

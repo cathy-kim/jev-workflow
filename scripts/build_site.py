@@ -3,6 +3,7 @@
 from pathlib import Path
 import shutil
 import zipfile
+from sync_research_chapter import sync
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
@@ -80,6 +81,7 @@ def bundle(path: Path, sources: list[tuple[Path, str]], *, allowed: set[str]) ->
 
 
 def main() -> None:
+    sync()
     (DOCS / "guide").mkdir(parents=True, exist_ok=True)
     (DOCS / "downloads").mkdir(exist_ok=True)
     (DOCS / ".nojekyll").touch()

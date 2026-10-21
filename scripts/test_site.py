@@ -55,8 +55,8 @@ class SiteTests(unittest.TestCase):
             p = Links()
             text = (ROOT / name).read_text(encoding="utf-8")
             p.feed(text)
-            self.assertEqual(p.pages, 35)
-            self.assertEqual(p.svg, 11)
+            self.assertEqual(p.pages, 43)
+            self.assertEqual(p.svg, 14)
             self.assertIn("공개판 범위와 안전한 재사용", text)
             self.assertNotIn("file://", text)
 
