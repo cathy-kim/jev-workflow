@@ -29,7 +29,7 @@ class PackageTests(unittest.TestCase):
     def test_manifest(self):
         manifest = json.loads((PLUGIN / '.claude-plugin/plugin.json').read_text())
         self.assertEqual(manifest['name'], 'jev')
-        self.assertEqual(manifest['version'], '1.0.0')
+        self.assertEqual(manifest['version'], '1.0.1')
         self.assertEqual(manifest['repository'], PUBLIC_URL)
         self.assertEqual(manifest['author'], {'name': 'cathy-kim'})
         self.assertEqual(manifest['license'], 'MIT')
@@ -43,7 +43,7 @@ class PackageTests(unittest.TestCase):
         entry = marketplace['plugins'][0]
         self.assertEqual(entry['name'], 'jev')
         self.assertEqual(entry['source'], './plugins/jev')
-        self.assertEqual(entry['version'], '1.0.0')
+        self.assertEqual(entry['version'], '1.0.1')
         self.assertEqual(entry['repository'], PUBLIC_URL)
 
     def test_one_canonical_skill(self):
