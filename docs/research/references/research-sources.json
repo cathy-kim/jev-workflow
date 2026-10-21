@@ -1,0 +1,45 @@
+{
+  "schema_version": "research-sources/v1",
+  "scope": "Public paper and source inspection only; no model inference or benchmark reproduction.",
+  "models": [
+    {
+      "id": "videojev",
+      "paper": "https://arxiv.org/html/2610.18615v1",
+      "repository": "https://github.com/MCG-NJU/VideoJev",
+      "code_revision": "7f8b38aa7df67721303cdc61f06d8435f3c7db89",
+      "reference": "videojev.md",
+      "runtime_status": "not_verified",
+      "public_artifacts": [
+        {"url": "https://github.com/MCG-NJU/VideoJev/tree/7f8b38aa7df67721303cdc61f06d8435f3c7db89", "revision": "7f8b38aa7df67721303cdc61f06d8435f3c7db89"},
+        {"url": "https://huggingface.co/ZhuYuhan/VideoJev-4B/tree/1c1a253bf90dfa66176124d25a48ffb791d517d5", "revision": "1c1a253bf90dfa66176124d25a48ffb791d517d5"},
+        {"url": "https://huggingface.co/ZhuYuhan/VideoJev-35B-A3B/tree/70ac2122552474faec6b79774322214695699b4f", "revision": "70ac2122552474faec6b79774322214695699b4f"},
+        {"url": "https://github.com/InternLM/xtuner/tree/76e705134521eff867b409f3b3451df1c4d8dd36", "revision": "76e705134521eff867b409f3b3451df1c4d8dd36"}
+      ]
+    },
+    {
+      "id": "mjev-spatial",
+      "paper": "https://arxiv.org/html/2610.22276v1",
+      "repository": "https://github.com/Fr0zenCrane/MJev-Spatial",
+      "code_revision": "df37e9e5a3455c642f7b43cf96abc4f950b4fa6d",
+      "reference": "mjev-spatial.md",
+      "runtime_status": "blocked_source_and_release_gates",
+      "public_artifacts": [
+        {"url": "https://github.com/Fr0zenCrane/MJev-Spatial/tree/df37e9e5a3455c642f7b43cf96abc4f950b4fa6d", "revision": "df37e9e5a3455c642f7b43cf96abc4f950b4fa6d"},
+        {"url": "https://huggingface.co/mindlab-research/MJev-Spatial-4B/tree/0657319c58d342f54c5108cd3c4d983a79a8b3f7", "revision": "0657319c58d342f54c5108cd3c4d983a79a8b3f7"},
+        {"url": "https://huggingface.co/Qwen/Qwen3.5-4B/tree/851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a", "revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"}
+      ]
+    },
+    {
+      "id": "jeva",
+      "paper": "https://arxiv.org/html/2610.18773v1",
+      "repository": "https://github.com/LiQiiiii/Jeva",
+      "code_revision": "e2104e0720100f979f2cdd456a1cbbee96da0abd",
+      "reference": "jeva.md",
+      "runtime_status": "not_verified",
+      "public_artifacts": [
+        {"url": "https://github.com/LiQiiiii/Jeva/tree/e2104e0720100f979f2cdd456a1cbbee96da0abd", "revision": "e2104e0720100f979f2cdd456a1cbbee96da0abd"},
+        {"url": "https://huggingface.co/LIQIIIII/Jeva-4B/tree/25ca454b3522615a243c06703ba410ecf152a128", "revision": "25ca454b3522615a243c06703ba410ecf152a128"}
+      ]
+    }
+  ]
+}

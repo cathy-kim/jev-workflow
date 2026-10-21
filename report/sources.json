@@ -1,5 +1,5 @@
 {
-  "scope": "Public technical references; historical reading notes, not live API or benchmark verification. Bounded refresh checked 2026-10-21: official TypeSafe Images, Box and model aliases only; other historical claims were not revalidated. Recheck current contracts before use.",
+  "scope": "Public technical references; historical reading notes, not live API or benchmark verification. Bounded refresh checked 2026-10-21: official TypeSafe Images, Box and model aliases only; other historical claims were not revalidated. Recheck current contracts before use. Research extension: full v1 paper text/appendices and pinned public source reviews for VideoJev, MJev-Spatial and Jeva; source inspection and offline contract tests are not inference or benchmark reproduction.",
   "sources": [
     {
       "id": "S1",
@@ -451,6 +451,87 @@
         "install cell에 unpinned Git main과 upgrade가 있어 notebook SHA만 고정해도 완전한 dependency 재현성이 확보되지 않는다.",
         "Colab은 cloud execution이며 local model API 사용과 다른 privacy boundary다.",
         "문서와 code 설정 차이를 고정 후 test split 미사용 유지·개인정보 제거·GPU quota 확인이 선행되어야 한다."
+      ]
+    },
+    {
+      "id": "R9",
+      "title": "VideoJev pinned implementation",
+      "requested_url": "https://github.com/MCG-NJU/VideoJev",
+      "resolved_url": "https://github.com/MCG-NJU/VideoJev/tree/7f8b38aa7df67721303cdc61f06d8435f3c7db89",
+      "findings": [
+        "Frame processing → cosine head → temporal/choice decoding; public HF Joint/vision reuse is distinct from research prefix-cache paths.",
+        "Nonempty temporal span is not evidence of event presence; cached evaluator label and actual path differ."
+      ],
+      "caveats": [
+        "Source inspected, not imported or executed. Model weights, GPU inference and performance reproduction were not verified.",
+        "Code, checkpoint and backbone licenses must be reviewed separately before runtime adoption."
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "VideoJev paper v1",
+      "requested_url": "https://arxiv.org/abs/2610.18615",
+      "resolved_url": "https://arxiv.org/html/2610.18615v1",
+      "findings": [
+        "Read full paper text and appendices; mapped methods, training and evaluation to pinned public source.",
+        "Detailed references preserve reading/visual-inspection scope and paper-versus-code discrepancies."
+      ],
+      "caveats": [
+        "All paper performance claims remain unreproduced. Do not treat independent research models as TypeSafe endpoint capabilities."
+      ]
+    },
+    {
+      "id": "R10",
+      "title": "MJev-Spatial pinned implementation",
+      "requested_url": "https://github.com/Fr0zenCrane/MJev-Spatial",
+      "resolved_url": "https://github.com/Fr0zenCrane/MJev-Spatial/tree/df37e9e5a3455c642f7b43cf96abc4f950b4fa6d",
+      "findings": [
+        "Native Q/K candidate scoring with scalar/point refinement; units and single normalized point contract remain explicit.",
+        "Declared extras dependency conflict, checkpoint save collision and missing export block runtime promotion; checkpoint-to-paper provenance unresolved."
+      ],
+      "caveats": [
+        "Source inspected, not imported or executed. Model weights, GPU inference and performance reproduction were not verified.",
+        "Code, checkpoint and backbone licenses must be reviewed separately before runtime adoption."
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "MJev-Spatial paper v1",
+      "requested_url": "https://arxiv.org/abs/2610.22276",
+      "resolved_url": "https://arxiv.org/html/2610.22276v1",
+      "findings": [
+        "Read full paper text and appendices; mapped methods, training and evaluation to pinned public source.",
+        "Detailed references preserve reading/visual-inspection scope and paper-versus-code discrepancies."
+      ],
+      "caveats": [
+        "All paper performance claims remain unreproduced. Do not treat independent research models as TypeSafe endpoint capabilities."
+      ]
+    },
+    {
+      "id": "R11",
+      "title": "Jeva pinned implementation",
+      "requested_url": "https://github.com/LiQiiiii/Jeva",
+      "resolved_url": "https://github.com/LiQiiiii/Jeva/tree/e2104e0720100f979f2cdd456a1cbbee96da0abd",
+      "findings": [
+        "Request and option encoding → fixed option memory → decision stack → competition/coverage → typed output.",
+        "Conditional q, joint mass and null are separate. Public trainer/evaluation metrics and paper configuration are not identical."
+      ],
+      "caveats": [
+        "Source inspected, not imported or executed. Model weights, GPU inference and performance reproduction were not verified.",
+        "Code, checkpoint and backbone licenses must be reviewed separately before runtime adoption."
+      ]
+    },
+    {
+      "id": "P8",
+      "title": "Jeva paper v1",
+      "requested_url": "https://arxiv.org/abs/2610.18773",
+      "resolved_url": "https://arxiv.org/html/2610.18773v1",
+      "findings": [
+        "Read full paper text and appendices; mapped methods, training and evaluation to pinned public source.",
+        "Detailed references preserve reading/visual-inspection scope and paper-versus-code discrepancies."
+      ],
+      "caveats": [
+        "All paper performance claims remain unreproduced. Do not treat independent research models as TypeSafe endpoint capabilities."
       ]
     }
   ]

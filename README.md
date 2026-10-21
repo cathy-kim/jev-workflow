@@ -53,6 +53,30 @@ The demo uses **synthetic fixtures** and returns a recommendation only. Shadow-m
 
 The workflow is **design → typed questions → adapter boundary → offline tests → evaluation → shadow adoption**. The skill gives repeatable steps and templates; the starter validates only a limited normalized text contract. Implement a provider-specific live adapter separately against current official documentation.
 
+## Full guide: research summary and analysis
+
+The [43-page HTML guide](https://cathy-kim.github.io/jev-workflow/guide/#p36) and [PDF](https://cathy-kim.github.io/jev-workflow/downloads/Jev-Workflow-Guide.pdf) now include an eight-page research chapter, not just external links:
+
+- **VideoJev:** temporal/choice scoring, event-absence limits, Joint/vision reuse versus research prefix caching, evaluation and training differences.
+- **MJev-Spatial:** native Q/K and coarse-to-fine spatial judgment, units/coordinate contracts, source/release blockers and checkpoint-provenance limits.
+- **Jeva:** immutable option memory, competition versus coverage/null, typed/raw API differences, permutation/cache evaluation and training-reproduction gaps.
+- A comparison matrix, three architecture diagrams, safe adoption steps and six primary paper/repository entries connect the analysis to the executable offline tools.
+
+See the [installation and usage explanation](docs/installation.md) and the authored [research chapter source](report/research-chapter.html). Editing that chapter and running `python3 scripts/build_site.py` synchronizes the full HTML guide; `python3 scripts/render_pdf.py` also synchronizes it before rendering the PDF. Rendering needs optional Playwright/Chromium tooling, not a model provider.
+
+## Video, spatial and null-aware research
+
+Read the [research companion](https://cathy-kim.github.io/jev-workflow/research/) and [selection guide](plugins/jev/skills/jev-decisions/references/research-models.md). Full paper-to-code references cover VideoJev, MJev-Spatial and Jeva at pinned public revisions, including implementation gaps and licenses. These are separate research models, not new TypeSafe API IDs.
+
+```sh
+python3 plugins/jev/skills/jev-decisions/scripts/research_kit.py plan --task video-grounding
+python3 plugins/jev/skills/jev-decisions/scripts/research_kit.py plan --task spatial-point
+python3 plugins/jev/skills/jev-decisions/scripts/research_kit.py plan --task text-choice
+python3 examples/research_demo.py
+```
+
+The planner and input validator are executable offline tools, **not model inference adapters**. No weights or upstream implementation are bundled. Model execution and benchmark reproduction remain unverified; MJev-Spatial has additional source/release blockers. Do not send internal media or data to public demos.
+
 ## Repository map
 
 ```text

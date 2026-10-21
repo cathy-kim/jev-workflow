@@ -1,6 +1,6 @@
 # Installation and portability
 
-The public edition is version **1.0.0**. The marketplace is `jev-workflow`, the plugin is `jev`, and the skill is `jev-decisions`. Installation supplies instructions and offline files only: no hooks, MCP server, API client, paid calls or credential discovery. This document describes user-initiated installation; the included tests do not modify installed settings.
+The public edition is version **1.1.0**. The marketplace is `jev-workflow`, the plugin is `jev`, and the skill is `jev-decisions`. Installation supplies instructions and offline files only: no hooks, MCP server, API client, paid calls or credential discovery. This document describes user-initiated installation; the included tests do not modify installed settings.
 
 ## Claude Code marketplace
 
@@ -77,6 +77,27 @@ The demo discovers the checkout from its own file path, so an absolute invocatio
 The demo itself exits 0 only if these expectations hold. It prints observed subprocess output, not model inference. Every gate outcome is recommendation-only. Synthetic approval/calibration flags and thresholds are branch-testing fixtures, not operational permission or recommended thresholds.
 
 To inspect or create persistent local scaffolding yourself, read the [offline starter](../plugins/jev/skills/jev-decisions/references/offline-starter.md).
+
+## VideoJev, MJev-Spatial and Jeva research workflows
+
+The [full illustrated guide](guide/index.html#p36) includes an eight-page summary and critical analysis: task selection, architecture, observed code paths, paper/implementation gaps, adoption gates and primary sources. The [research companion](research/index.html) is the shorter browser entry; [full references](../plugins/jev/skills/jev-decisions/references/research-models.md) preserve commit-pinned file/function/line evidence. The PDF contains the same research chapter, not merely a link to a separate page.
+
+These research models are independent of TypeSafe and are not automatically installed or enabled by this skill. For example:
+
+```text
+/jev:jev-decisions Summarize VideoJev's temporal-grounding contract and validate a synthetic question list. No inference.
+/jev:jev-decisions Explain MJev-Spatial's point contract and current runtime blockers.
+/jev:jev-decisions Design Jeva evaluation that separates conditional probabilities, joint mass and null.
+```
+
+From a full repository checkout, exercise the research tool:
+
+```bash
+python3 -B examples/research_demo.py
+python3 plugins/jev/skills/jev-decisions/scripts/research_kit.py plan --task spatial-point
+```
+
+In a portable skill bundle, resolve `scripts/research_kit.py` from the skill directory and use its `--help`. The repository-level demo is not part of that smaller bundle. Plans and input validation do not read media, download weights or execute a model. All runtime states remain `UNVERIFIED`; spatial additionally retains `BLOCKED_SOURCE_ISSUES`. A `VALID_CONTRACT_ONLY` result never certifies media provenance, accuracy, permission or runtime availability.
 
 ## Verify the package
 
