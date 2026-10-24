@@ -42,10 +42,14 @@ def _kept_headers(headers):
     kept = {}
     if headers is None:
         return kept
-    for name in _KEPT_HEADERS:
-        value = headers.get(name)
-        if isinstance(value, str) and len(value) <= 64:
-            kept[name] = value
+    try:
+        items = list(headers.items())
+    except (AttributeError, TypeError):
+        return kept
+    for name, value in items:
+        lowered = name.lower() if isinstance(name, str) else ''
+        if lowered in _KEPT_HEADERS and isinstance(value, str) and len(value) <= 64:
+            kept[lowered] = value
     return kept
 
 
