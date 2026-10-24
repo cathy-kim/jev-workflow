@@ -161,6 +161,12 @@ class DecisionClient:
         return DecisionResult(json.dumps(payload, ensure_ascii=False, allow_nan=False))
 
     # ------------------------------------------------------------------ live
+    def secrets(self):
+        """Values to redact from live-mode output (selected provider only)."""
+        environ = os.environ if self._environ is None else self._environ
+        value = environ.get(capabilities.credential_env(self.provider))
+        return [value] if value else []
+
     def decide(self, request):
         """Send one paid request to the selected provider. Never falls back."""
         prepared = self.prepare(request)
