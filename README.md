@@ -154,7 +154,7 @@ Keep changes narrowly scoped; add offline regression tests and describe verifica
 
 ## 한국어
 
-Jev 판단을 자신의 워크플로에 도입하기 위한 공개 스킬·플러그인과 가이드입니다. Claude Code·Codex·Hermes·MCP 클라이언트에서 쓸 수 있고, OpenAI Decisions·TypeSafe·OpenRouter 중 하나를 `--provider`로 명시해 호출하는 클라이언트가 들어 있습니다. 기본은 오프라인이며 `--live`를 줄 때만 선택한 provider 키 하나를 읽어 유료 호출합니다. 실제 데이터 전송·배포는 별도 승인이 필요합니다. [한국어 가이드](https://cathy-kim.github.io/jev-workflow/guide/)에서 전체 개념과 도입 절차를 읽을 수 있습니다.
+Jev 판단을 자신의 워크플로에 도입하기 위한 공개 스킬·플러그인과 가이드입니다. Claude Code·Codex·Hermes·MCP 클라이언트에서 쓸 수 있고, OpenAI Decisions·TypeSafe·OpenRouter 중 하나를 고르는 클라이언트가 들어 있습니다. 기본은 오프라인이며, `--live`는 `--provider`(또는 `JEV_PROVIDER`)를 명시해야만 동작하고 선택한 provider 키 하나만 읽어 유료 호출합니다. 실제 데이터 전송·배포는 별도 승인이 필요합니다. [한국어 가이드](https://cathy-kim.github.io/jev-workflow/guide/)에서 전체 개념과 도입 절차를 읽을 수 있습니다.
 
 ## License
 
