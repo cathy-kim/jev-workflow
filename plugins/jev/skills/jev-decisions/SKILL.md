@@ -39,7 +39,7 @@ Examples:
 
 ## Live client (explicit opt-in)
 
-`scripts/jev_cli.py` (installable as `jev-workflow`) is a standard-library client for three providers, chosen explicitly with `--provider openai|typesafe|openrouter` (default `openrouter`, route `decisions`). Read the [live client reference](references/live-client.md) before using it: it lists endpoints, pinned default models, per-provider capabilities, value/confidence origins and the sources checked.
+`scripts/jev_cli.py` (installable as `jev-workflow`) is a standard-library client for three providers, chosen explicitly with `--provider openai|typesafe|openrouter` (offline default `openrouter`, route `decisions`; `--live` refuses to run without an explicit `--provider` or `JEV_PROVIDER`). Read the [live client reference](references/live-client.md) before using it: it lists endpoints, pinned default models, per-provider capabilities, value/confidence origins and the sources checked.
 
 - Offline and safe to run any time: `providers`, `capabilities`, `doctor`, `validate`, `decide --dry-run`, `ask --dry-run`, `parse` (saved responses), `install --dry-run`, and the default `mcp-serve`.
 - Paid and data-transferring: `decide --live`, `ask --live`, or `mcp-serve --enable-live --live-provider P --max-live-requests N`. Each reads only the selected provider's key variable (`OPENAI_API_KEY`, `TYPESAFE_API_KEY` or `OPENROUTER_API_KEY`) at call time. Ask for approval first; installation is not approval.

@@ -60,7 +60,7 @@ jev-workflow decide --provider typesafe --request my-request.json --live    # pa
 
 - `--provider openai` → `POST /v1/decisions`, default `gpt-6-luna`, `OPENAI_API_KEY`.
 - `--provider typesafe` → `POST /v1/systemone`, default pinned `jev-1.14.0`, `TYPESAFE_API_KEY`; experimental images/Box need `--experimental-images`.
-- `--provider openrouter` (default) → OpenRouter Decisions with `~typesafe/jev-latest`, `OPENROUTER_API_KEY`; `--openrouter-mode structured --model …` is a general-LLM JSON judge whose probabilities are **uncalibrated**.
+- `--provider openrouter` (default for offline commands; `--live` always needs an explicit `--provider` or `JEV_PROVIDER`) → OpenRouter Decisions with `~typesafe/jev-latest`, `OPENROUTER_API_KEY`; `--openrouter-mode structured --model …` is a general-LLM JSON judge whose probabilities are **uncalibrated**.
 
 Every result records provider, route, requested and reported model, usage, refusals/not-applicable answers and where each value came from. Unsupported features fail before any network call; malformed responses fail closed. There is no automatic provider or model fallback.
 
