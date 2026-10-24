@@ -157,7 +157,7 @@ class DecisionClient:
         prepared = self.prepare(request)
         environ = os.environ if self._environ is None else self._environ
         key = credentials.read_api_key(self.provider, environ)
-        if key in prepared.body_json:
+        if credentials.contains_secret(prepared.body_json, key):
             raise UsageError('request content contains the credential value; refusing to send it')
         headers = dict(prepared.headers, Authorization=f'Bearer {key}')
         body = prepared.body_bytes
@@ -195,7 +195,7 @@ class DecisionClient:
             document = strict_json_loads(text)
         except (UnicodeDecodeError, ValueError, RecursionError):
             raise ResponseError('provider response rejected: body is not strict UTF-8 JSON') from None
-        if key in text:
+        if credentials.contains_secret(text, key):
             raise ResponseError('provider response rejected: credential echo detected')
         result = self.parse(request, document, provenance={
             'request_sha256': hashlib.sha256(body).hexdigest(), 'attempts': attempt})

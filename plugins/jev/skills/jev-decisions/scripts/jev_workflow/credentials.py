@@ -23,11 +23,19 @@ def read_api_key(provider, environ):
     return value
 
 
+def secret_forms(secret):
+    """Raw and JSON-escaped spellings (quotes/backslashes are escaped inside JSON)."""
+    return {secret, json.dumps(secret)[1:-1], json.dumps(secret, ensure_ascii=False)[1:-1]}
+
+
+def contains_secret(text, secret):
+    return any(form in text for form in secret_forms(secret))
+
+
 def redact(text, secrets):
     for secret in secrets:
         if not secret or len(secret) < 4:
             continue
-        # Also the JSON-escaped spelling, in case the value contains quotes or backslashes.
-        for form in {secret, json.dumps(secret)[1:-1], json.dumps(secret, ensure_ascii=False)[1:-1]}:
+        for form in secret_forms(secret):
             text = text.replace(form, REDACTED)
     return text

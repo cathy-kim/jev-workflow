@@ -74,6 +74,7 @@ class MCPServer:
         self._live = live_client
         self._remaining = max_live_requests if live_client is not None else 0
         self._initialized = False
+        self._secrets = []
 
     # ------------------------------------------------------------------ tools
     def tools(self):
@@ -101,6 +102,8 @@ class MCPServer:
                                                  'live request budget for this server process is exhausted'))
             self._live.prepare(request)  # capability errors fail before spending budget
             self._remaining -= 1
+            if hasattr(self._live, 'secrets'):
+                self._secrets = self._live.secrets()  # read once, at live call time, for output redaction
             return self._live.decide(request).to_dict()
         if name not in OFFLINE_TOOLS:
             raise KeyError(name)
@@ -220,9 +223,8 @@ class MCPServer:
     def _write(self, stdout, response):
         if response is None:
             return
-        text = json.dumps(response, ensure_ascii=False, allow_nan=False, separators=(',', ':'))
-        secrets = self._live.secrets() if self._live is not None and hasattr(self._live, 'secrets') else []
-        stdout.write((redact(text, secrets) + '\n').encode('utf-8'))
+        text = json.dumps(response, ensure_ascii=True, allow_nan=False, separators=(',', ':'))
+        stdout.write((redact(text, self._secrets) + '\n').encode('utf-8'))
         stdout.flush()
 
 

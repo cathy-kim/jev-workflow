@@ -141,6 +141,9 @@ PROVIDERS = {
     },
 }
 
+# Dated snapshot (-YYYYMMDD or -YYYY-MM-DD) and, for dotted versions, an extra patch number.
+_SNAPSHOT_SUFFIX = r'(?:\.\d+)?(?:-(?:\d{8}|\d{4}-\d{2}-\d{2}))?'
+
 _UNLISTED = {'match': 'snapshot', 'images': False, 'box': False, 'unlisted': True}
 
 
@@ -203,7 +206,7 @@ def reported_model_ok(requested, reported, caps):
         return reported == requested
     if match == 'alias':
         return re.fullmatch(caps['alias_pattern'], reported) is not None
-    return reported == requested or reported.startswith(requested + '-')
+    return re.fullmatch(re.escape(requested) + _SNAPSHOT_SUFFIX, reported) is not None
 
 
 def matrix():

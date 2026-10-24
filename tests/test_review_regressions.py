@@ -235,3 +235,109 @@ class InstallerRollbackTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class _HeaderDrip(http.server.BaseHTTPRequestHandler):
+    def do_POST(self):  # noqa: N802
+        self.wfile.write(b'HTTP/1.1 200 OK\r\nX-Slow: ')
+        for _ in range(40):
+            self.wfile.write(b'a')
+            self.wfile.flush()
+            time.sleep(0.3)
+
+    def log_message(self, *_args):
+        pass
+
+
+class _ErrorBodyDrip(http.server.BaseHTTPRequestHandler):
+    def do_POST(self):  # noqa: N802
+        self.send_response(500)
+        self.send_header('Content-Length', '100')
+        self.end_headers()
+        for _ in range(100):
+            self.wfile.write(b'e')
+            self.wfile.flush()
+            time.sleep(0.3)
+
+    def log_message(self, *_args):
+        pass
+
+
+class SecondReviewTimeoutTests(unittest.TestCase):
+    def assert_bounded(self, handler):
+        server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            from jev_workflow import transport as module
+            started = time.monotonic()
+            with mock.patch.object(module, '_allowed_url', lambda _url: True):
+                with self.assertRaises(TransportError) as caught:
+                    UrllibTransport().send(f'http://127.0.0.1:{server.server_port}/x', {}, b'{}', 1)
+            self.assertLess(time.monotonic() - started, 2.5)
+            self.assertEqual(caught.exception.code, 'outcome_unknown')
+        finally:
+            server.shutdown()
+            server.server_close()
+
+    def test_header_drip_bounded(self):
+        self.assert_bounded(_HeaderDrip)
+
+    def test_error_body_drip_bounded(self):
+        self.assert_bounded(_ErrorBodyDrip)
+
+
+class SurrogateTests(unittest.TestCase):
+    def test_response_surrogate_rejected(self):
+        response = fresh(OPENROUTER_DECISIONS_RESPONSE)
+        text = json.dumps(response).replace('gen-dec-synthetic-0001', 'abc\\ud800')
+        transport = ScriptedTransport(HttpResponse(200, text.encode()))
+        client = DecisionClient('openrouter', environ={'OPENROUTER_API_KEY': FAKE_KEYS['openrouter']},
+                                transport=transport)
+        with self.assertRaises(ResponseError):
+            client.decide(parse_request(fresh(REQUEST)))
+
+    def test_request_surrogate_rejected(self):
+        with self.assertRaises(UsageError):
+            load_request_text(json.dumps(dict(fresh(REQUEST), state='x')).replace('"x"', '"\\ud800"'))
+        raw = fresh(REQUEST)
+        raw['state'] = 'bad \ud800'
+        with self.assertRaises(UsageError):
+            parse_request(raw)
+        raw = fresh(REQUEST)
+        raw['questions'][0]['instructions'] = 'bad \ud800'
+        with self.assertRaises(UsageError):
+            parse_request(raw)
+
+
+class SnapshotMatchTests(unittest.TestCase):
+    def test_only_dated_snapshots_match_pinned_slugs(self):
+        from jev_workflow import capabilities
+        caps = {'match': 'snapshot'}
+        for reported in ('gpt-6-luna', 'gpt-6-luna-2026-10-01', 'gpt-6-luna-20261001'):
+            self.assertTrue(capabilities.reported_model_ok('gpt-6-luna', reported, caps), reported)
+        for reported in ('gpt-6-luna-mini', 'gpt-6-luna-x', 'gpt-6-luna-', 'gpt-6-lunar'):
+            self.assertFalse(capabilities.reported_model_ok('gpt-6-luna', reported, caps), reported)
+        self.assertTrue(capabilities.reported_model_ok('typesafe/jev-1.13', 'typesafe/jev-1.13-20260917', caps))
+        self.assertTrue(capabilities.reported_model_ok('typesafe/jev-1.14', 'typesafe/jev-1.14.0', caps))
+        self.assertFalse(capabilities.reported_model_ok('typesafe/jev-1.14', 'typesafe/jev-1.14-lite', caps))
+
+
+class SecondReviewMiscTests(unittest.TestCase):
+    def test_key_with_quote_blocked_before_send(self):
+        key = 'ab"cdefghij-0000'
+        raw = fresh(REQUEST)
+        raw['state'] = 'leak ' + key
+        transport = ScriptedTransport()
+        client = DecisionClient('openai', environ={'OPENAI_API_KEY': key}, transport=transport)
+        with self.assertRaises(UsageError):
+            client.decide(parse_request(raw))
+        self.assertEqual(transport.calls, 0)
+
+    def test_boolean_usage_metadata_accepted_but_not_as_counts(self):
+        response = fresh(OPENROUTER_DECISIONS_RESPONSE)
+        response['usage']['is_byok'] = False
+        result = DecisionClient('openrouter', environ={}).parse(parse_request(fresh(REQUEST)), response).to_dict()
+        self.assertIs(result['usage']['is_byok'], False)
+        response['usage']['input_tokens'] = True
+        with self.assertRaises(ResponseError):
+            DecisionClient('openrouter', environ={}).parse(parse_request(fresh(REQUEST)), response)

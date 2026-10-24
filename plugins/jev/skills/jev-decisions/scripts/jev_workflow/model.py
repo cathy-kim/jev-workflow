@@ -116,7 +116,29 @@ def strict_json_loads(text):
     def constant(name):
         raise ValueError(f'non-finite number {name}')
 
-    return json.loads(text, object_pairs_hook=unique, parse_constant=constant)
+    document = json.loads(text, object_pairs_hook=unique, parse_constant=constant)
+    _reject_surrogates(document)
+    return document
+
+
+def _reject_surrogates(value):
+    stack = [value]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, str):
+            _encodable(item)
+        elif isinstance(item, dict):
+            stack.extend(item.keys())
+            stack.extend(item.values())
+        elif isinstance(item, list):
+            stack.extend(item)
+
+
+def _encodable(text):
+    try:
+        text.encode('utf-8')
+    except UnicodeEncodeError:
+        raise ValueError('lone surrogate in JSON string') from None
 
 
 def option_key(value):
@@ -135,6 +157,10 @@ def _text(value, field, limit):
         _fail(f'{field} must not be empty')
     if len(value) > limit:
         _fail(f'{field} exceeds {limit} characters')
+    try:
+        _encodable(value)
+    except ValueError:
+        _fail(f'{field} must be valid Unicode text (lone surrogate found)')
     return value
 
 
@@ -196,6 +222,10 @@ def _parse_state(state):
         text = json.dumps(state, ensure_ascii=False, allow_nan=False, separators=(',', ':'))
     except (ValueError, TypeError, RecursionError):
         _fail('state must contain only finite JSON values')
+    try:
+        _reject_surrogates(state)
+    except ValueError:
+        _fail('state must be valid Unicode text (lone surrogate found)')
     if len(text.encode('utf-8')) > MAX_STATE_BYTES:
         _fail(f'state exceeds {MAX_STATE_BYTES} bytes')
     return text

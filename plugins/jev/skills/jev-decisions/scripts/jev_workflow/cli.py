@@ -97,7 +97,10 @@ def _load_request(args, raw_text=None):
     if not isinstance(raw, dict):
         raise UsageError('request must be an object')
     raw = dict(raw)
-    raw['images'] = list(raw.get('images') or []) + [_image_entry(spec) for spec in args.image]
+    existing = raw.get('images', [])
+    if not isinstance(existing, list):
+        raise UsageError('request.images must be a list')
+    raw['images'] = existing + [_image_entry(spec) for spec in args.image]
     return load_request_text(json.dumps(raw))
 
 
@@ -110,6 +113,8 @@ def _preview(client, request, config):
 
 def _run_request(args, request):
     client, config = _client(args)
+    if args.live and config['provider_source'] == 'default':
+        raise UsageError('--live requires an explicit --provider (or JEV_PROVIDER); data is never sent to a default')
     if args.live:
         result = client.decide(request).to_dict()
         result['config'] = config
@@ -320,8 +325,12 @@ def build_parser():
 def _emit(document, compact):
     if document is None:
         return
-    text = json.dumps(document, ensure_ascii=False, allow_nan=False,
-                      indent=None if compact else 2, separators=(',', ':') if compact else None)
+    options = {'allow_nan': False, 'indent': None if compact else 2, 'separators': (',', ':') if compact else None}
+    text = json.dumps(document, ensure_ascii=False, **options)
+    try:
+        text.encode(sys.stdout.encoding or 'utf-8')
+    except (UnicodeEncodeError, LookupError):
+        text = json.dumps(document, ensure_ascii=True, **options)
     sys.stdout.write(text + '\n')
 
 

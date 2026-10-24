@@ -76,6 +76,8 @@ def _usage_numbers(usage, where, required, depth=0):
             _bad(f'{where} has an invalid key')
         if isinstance(value, dict):
             clean[key] = _usage_numbers(value, f'{where}.{key}', (), depth + 1)
+        elif isinstance(value, bool) and key not in required and not key.endswith('tokens'):
+            clean[key] = value  # metadata flag (for example is_byok), never a count
         elif key == 'cost' or key.endswith('_cost'):
             if value is None:
                 clean[key] = None

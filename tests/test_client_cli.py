@@ -222,3 +222,31 @@ class CliOfflineTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class CliSecondReviewTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(prefix='jev-cli2-')
+        self.request = Path(self.tmp.name) / 'request.json'
+        self.request.write_text(json.dumps(REQUEST))
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_live_requires_explicit_provider(self):
+        result = run(['decide', '--request', self.request, '--live'])
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn('--provider', json.loads(result.stdout)['error']['message'])
+        env_result = run(['decide', '--request', self.request, '--live'], env={'JEV_PROVIDER': 'openai'})
+        self.assertEqual(json.loads(env_result.stdout)['error']['code'], 'credential_missing')
+
+    def test_images_wrong_type_is_usage_error(self):
+        raw = fresh(REQUEST)
+        raw['images'] = 5
+        path = Path(self.tmp.name) / 'bad-images.json'
+        path.write_text(json.dumps(raw))
+        image = Path(self.tmp.name) / 'a.png'
+        image.write_bytes(PNG_1X1)
+        result = run(['validate', '--provider', 'typesafe', '--request', path, '--image', f'x={image}'])
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertEqual(json.loads(result.stdout)['error']['code'], 'invalid_request')
