@@ -2,13 +2,13 @@
 
 **Typed decisions, tested offline, adopted deliberately.**
 
-A standalone community toolkit for designing Jev decision workflows: an installable Claude Code plugin, a portable skill, an offline Python starter, reusable templates and an illustrated Korean guide.
+A standalone community toolkit for designing Jev decision workflows: a portable skill with Claude Code, Codex and Hermes installation adapters, an opt-in live client and stdio MCP server for **OpenAI Decisions, TypeSafe System One and OpenRouter**, an offline Python starter, reusable templates and an illustrated Korean guide.
 
 - **[Website & downloads](https://cathy-kim.github.io/jev-workflow/)**
 - **[Read the guide](https://cathy-kim.github.io/jev-workflow/guide/)** · [PDF](https://cathy-kim.github.io/jev-workflow/downloads/Jev-Workflow-Guide.pdf)
 - [Installation details](docs/installation.md) · [Security & scope](SECURITY.md)
 
-Independent project, not affiliated with TypeSafe, Anthropic, OpenAI or other named providers. This repository does **not** include model weights or a live API client.
+Independent project, not affiliated with TypeSafe, Anthropic, OpenAI, OpenRouter or other named providers. This repository does **not** include model weights. Its live API client sends nothing unless you pass `--live`; live authentication, billing and answer quality were not tested by this project.
 
 ## Install in Claude Code
 
@@ -28,7 +28,41 @@ Then start a fresh Claude Code session and invoke:
 
 Inside Claude Code, `/plugin marketplace add cathy-kim/jev-workflow` and `/plugin install jev@jev-workflow` provide the corresponding interactive flow. Confirm installation in the plugin panel when prompted.
 
-For another skill-capable agent, use the complete folder at [`plugins/jev/skills/jev-decisions`](plugins/jev/skills/jev-decisions), not just its `SKILL.md`. Read your runtime's documented skill installation procedure. There are no required private services, local absolute paths, hooks or MCP servers.
+For another skill-capable agent, use the complete folder at [`plugins/jev/skills/jev-decisions`](plugins/jev/skills/jev-decisions), not just its `SKILL.md`. There are no required private services, local absolute paths or hooks.
+
+## Use it in Codex, Hermes, other agents and MCP clients
+
+The skill folder is the single source of truth; runtimes only differ in where they discover it. The installer copies it into a directory **you name**, prints the runtime's own MCP registration command without running it, and can roll back:
+
+```sh
+python3 plugins/jev/skills/jev-decisions/scripts/jev_cli.py install --runtime codex  --target ./.agents/skills --dry-run
+python3 plugins/jev/skills/jev-decisions/scripts/jev_cli.py install --runtime hermes --target ./.hermes/skills
+python3 plugins/jev/skills/jev-decisions/scripts/jev_cli.py uninstall --target ./.hermes/skills
+```
+
+| Runtime | Install | Invoke |
+|---|---|---|
+| Claude Code | plugin above, or `--runtime claude --target <project>/.claude/skills` | `/jev:jev-decisions` or `/jev-decisions` |
+| Codex | `--runtime codex --target <repo>/.agents/skills` | `$jev-decisions` |
+| Hermes | `--runtime hermes --target <project>/.hermes/skills` (then `hermes skills trust`) | `/jev-decisions` |
+| Any MCP client | register `python3 <skill>/scripts/jev_cli.py mcp-serve` | offline tools; paid `jev_decide` only with operator `--enable-live` |
+
+These are different native mechanisms, not one shared plugin format. See the [live client reference](plugins/jev/skills/jev-decisions/references/live-client.md).
+
+## Call OpenAI Decisions, TypeSafe or OpenRouter (opt-in)
+
+```sh
+python3 -m venv .venv && . .venv/bin/activate && python3 -m pip install .   # or run scripts/jev_cli.py directly
+jev-workflow providers                       # offline capability matrix
+jev-workflow decide --provider openai --request plugins/jev/skills/jev-decisions/scripts/examples/providers/request.synthetic.json --dry-run
+jev-workflow decide --provider typesafe --request my-request.json --live    # paid; reads only TYPESAFE_API_KEY
+```
+
+- `--provider openai` → `POST /v1/decisions`, default `gpt-6-luna`, `OPENAI_API_KEY`.
+- `--provider typesafe` → `POST /v1/systemone`, default pinned `jev-1.14.0`, `TYPESAFE_API_KEY`; experimental images/Box need `--experimental-images`.
+- `--provider openrouter` (default) → OpenRouter Decisions with `~typesafe/jev-latest`, `OPENROUTER_API_KEY`; `--openrouter-mode structured --model …` is a general-LLM JSON judge whose probabilities are **uncalibrated**.
+
+Every result records provider, route, requested and reported model, usage, refusals/not-applicable answers and where each value came from. Unsupported features fail before any network call; malformed responses fail closed. There is no automatic provider or model fallback.
 
 ## Try it without credentials
 
@@ -51,7 +85,7 @@ The demo uses **synthetic fixtures** and returns a recommendation only. Shadow-m
 - **Agent evaluation:** check schemas and tool order deterministically, then add semantic evaluation without treating N/A as success.
 - **Adoption:** define a labeled holdout, calibration protocol, cost cap and rollback plan before live inference.
 
-The workflow is **design → typed questions → adapter boundary → offline tests → evaluation → shadow adoption**. The skill gives repeatable steps and templates; the starter validates only a limited normalized text contract. Implement a provider-specific live adapter separately against current official documentation.
+The workflow is **design → typed questions → adapter boundary → offline tests → evaluation → shadow adoption**. The skill gives repeatable steps and templates; the starter validates only a limited normalized text contract. The live client covers three documented provider routes; re-check current official documentation before relying on any of them.
 
 ## Full guide: research summary and analysis
 
@@ -81,8 +115,10 @@ The planner and input validator are executable offline tools, **not model infere
 
 ```text
 .claude-plugin/marketplace.json   Public plugin catalog
+pyproject.toml                  Installs jev-workflow / jev-workflow-mcp from the skill's scripts/
 plugins/jev/                     Claude Code plugin
-  skills/jev-decisions/          Canonical portable skill and offline starter
+  skills/jev-decisions/          Canonical portable skill, offline starter and live client
+    scripts/jev_workflow/        Provider client, CLI, MCP server and installer (stdlib only)
 examples/                       Runnable synthetic example
 tests/                          Packaging and portability checks
 report/guide.html               Sanitized public report source
@@ -118,7 +154,7 @@ Keep changes narrowly scoped; add offline regression tests and describe verifica
 
 ## 한국어
 
-Jev 판단을 자신의 워크플로에 도입하기 위한 공개 스킬·플러그인과 가이드입니다. 설치 후 요청 범위와 근거를 먼저 정의하고, 합성 예제·오프라인 테스트로 실패 경로부터 검증합니다. 실제 API 연동·데이터 전송·배포는 별도 구현과 승인이 필요합니다. [한국어 가이드](https://cathy-kim.github.io/jev-workflow/guide/)에서 전체 개념과 도입 절차를 읽을 수 있습니다.
+Jev 판단을 자신의 워크플로에 도입하기 위한 공개 스킬·플러그인과 가이드입니다. Claude Code·Codex·Hermes·MCP 클라이언트에서 쓸 수 있고, OpenAI Decisions·TypeSafe·OpenRouter 중 하나를 `--provider`로 명시해 호출하는 클라이언트가 들어 있습니다. 기본은 오프라인이며 `--live`를 줄 때만 선택한 provider 키 하나를 읽어 유료 호출합니다. 실제 데이터 전송·배포는 별도 승인이 필요합니다. [한국어 가이드](https://cathy-kim.github.io/jev-workflow/guide/)에서 전체 개념과 도입 절차를 읽을 수 있습니다.
 
 ## License
 
