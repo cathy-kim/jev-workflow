@@ -488,18 +488,21 @@ class OpenRouterTests(unittest.TestCase):
 
 
 class DerivedValueTests(unittest.TestCase):
-    def test_probability_tolerance_scales_with_option_count(self):
+    def test_probability_tolerance_is_fixed(self):
         raw = fresh(REQUEST)
         raw['questions'] = [{'id': 'c', 'type': 'choice', 'instructions': 'Pick',
                              'options': [{'value': f'o{i}'} for i in range(100)]}]
         request = parse_request(raw)
         probabilities = {f'o{i}': 0.01 for i in range(100)}
-        probabilities['o0'] = 0.04  # rounded distribution summing to 1.03
+        probabilities['o0'] = 0.04  # sums to 1.03: outside the fixed 0.02 rounding tolerance
         response = {'model': 'jev-1.14.0', 'usage': {'input_tokens': 1, 'output_tokens': 1},
                     'answers': {'c': {'type': 'choice', 'choice': 'o0', 'confidence': 0.1,
                                       'probabilities': probabilities}}}
+        with self.assertRaises(ResponseError):
+            client('typesafe').parse(request, response)
+        probabilities['o0'] = 0.015  # sums to 1.005: rounding, accepted
         result = client('typesafe').parse(request, response).to_dict()
-        self.assertTrue(math.isclose(sum(p['probability'] for p in result['answers'][0]['probabilities']), 1.03))
+        self.assertTrue(math.isclose(sum(p['probability'] for p in result['answers'][0]['probabilities']), 1.005))
 
 
 if __name__ == '__main__':

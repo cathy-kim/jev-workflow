@@ -11,7 +11,7 @@ from typing import NoReturn
 
 from . import capabilities
 from .errors import CapabilityError, ResponseError
-from .model import option_key
+from .model import option_key, strict_json_loads
 
 MAX_STRUCTURED_CONTENT_CHARS = 1_048_576
 BOX_NOTE = ('Box always returns coordinates, even when the target is absent; '
@@ -43,9 +43,13 @@ def _count(value, where):
     return value
 
 
+PROBABILITY_SUM_TOLERANCE = 0.02
+
+
 def _sum_ok(values):
-    tolerance = max(0.02, 0.005 * len(values))
-    return abs(sum(values) - 1.0) <= tolerance
+    # Fixed absolute tolerance for provider rounding; it never grows with the option
+    # count, so all-zero or inflated distributions cannot pass.
+    return abs(sum(values) - 1.0) <= PROBABILITY_SUM_TOLERANCE
 
 
 def _fields(obj, required, optional, where):
@@ -58,18 +62,20 @@ def _fields(obj, required, optional, where):
         _bad(f'{where} has unexpected field(s)')
 
 
-def _usage_numbers(usage, where, required):
-    if not isinstance(usage, dict):
+def _usage_numbers(usage, where, required, depth=0):
+    if depth > 2:
+        _bad(f'{where} is nested too deeply')
+    if not isinstance(usage, dict) or len(usage) > 32:
         _bad(f'{where} must be an object')
     for key in required:
         if key not in usage:
             _bad(f'{where}.{key} is required')
     clean = {}
     for key, value in usage.items():
-        if not isinstance(key, str):
-            _bad(f'{where} has a non-string key')
+        if not isinstance(key, str) or len(key) > 64:
+            _bad(f'{where} has an invalid key')
         if isinstance(value, dict):
-            clean[key] = _usage_numbers(value, f'{where}.{key}', ())
+            clean[key] = _usage_numbers(value, f'{where}.{key}', (), depth + 1)
         elif key == 'cost' or key.endswith('_cost'):
             if value is None:
                 clean[key] = None
@@ -78,6 +84,11 @@ def _usage_numbers(usage, where, required):
         else:
             clean[key] = _count(value, f'{where}.{key}')
     return clean
+
+
+def _short(value, limit=256):
+    """Provider-controlled metadata copied into results: strings only, bounded."""
+    return value if isinstance(value, str) and len(value) <= limit else None
 
 
 def _answer(question, status, value=None, probabilities=None, confidence=None, derived=None, raw=None,
@@ -184,6 +195,8 @@ def openai_body(request, model):
 def openai_parse(request, response):
     if not isinstance(response, dict):
         _bad('envelope must be an object')
+    if set(response) - {'answers', 'model', 'usage'}:
+        _bad('envelope has fields outside the documented answers/model/usage')
     for key in ('answers', 'model', 'usage'):
         if key not in response:
             _bad(f'envelope.{key} is required')
@@ -253,8 +266,7 @@ def openai_parse(request, response):
         parsed.append(_answer(question, 'answered', value, normalized, confidence,
                               _score_derived(value, levels, normalized, 'provider_reported'), answer, kind))
     usage = _usage_numbers(response['usage'], 'usage', ('input_tokens', 'output_tokens', 'total_tokens'))
-    ignored = sorted(set(response) - {'answers', 'model', 'usage'})
-    return parsed, response['model'], usage, {'ignored_response_fields': ignored}
+    return parsed, response['model'], usage, {}
 
 
 # --------------------------------------------------------------------------- System One shape (TypeSafe, OpenRouter Decisions)
@@ -375,20 +387,17 @@ def openrouter_decisions_parse(request, response, caps):
     for key in ('answers', 'model', 'usage'):
         if key not in response:
             _bad(f'envelope.{key} is required')
-    if 'error' in response:
-        _bad('envelope contains an error object')
+    if set(response) - {'answers', 'model', 'usage', 'provider', 'id'}:
+        _bad('envelope has fields outside the documented answers/id/model/provider/usage')
     parsed = _system_one_answers(request, response['answers'], strict=False)
     usage = _usage_numbers(response['usage'], 'usage', ('input_tokens', 'output_tokens'))
     upstream = response.get('provider')
     if upstream is not None and not isinstance(upstream, str):
         _bad('provider must be a string')
     expected = caps.get('upstream_provider')
-    if expected and upstream is not None and upstream.lower() != expected.lower():
-        _bad('upstream provider differs from the pinned model provider (fallback refused)')
-    generation = response.get('id')
-    extra = {'upstream_provider': upstream,
-             'response_id': generation if isinstance(generation, str) else None,
-             'ignored_response_fields': sorted(set(response) - {'answers', 'model', 'usage', 'provider', 'id'})}
+    if expected and (upstream is None or upstream.lower() != expected.lower()):
+        _bad('upstream provider is missing or differs from the pinned model provider (fallback refused)')
+    extra = {'upstream_provider': _short(upstream), 'response_id': _short(response.get('id'))}
     return parsed, response['model'], usage, extra
 
 
@@ -449,21 +458,6 @@ def openrouter_structured_body(request, model):
     }
 
 
-def _strict_json(text):
-    def unique(pairs):
-        result = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError('duplicate key')
-            result[key] = value
-        return result
-
-    def constant(_name):
-        raise ValueError('non-finite')
-
-    return json.loads(text, object_pairs_hook=unique, parse_constant=constant)
-
-
 def openrouter_structured_parse(request, response):
     if not isinstance(response, dict) or 'error' in response:
         _bad('envelope must be a success object')
@@ -479,8 +473,7 @@ def openrouter_structured_parse(request, response):
     raw_usage = _usage_numbers(response['usage'], 'usage', ('prompt_tokens', 'completion_tokens'))
     usage = {'input_tokens': raw_usage['prompt_tokens'], 'output_tokens': raw_usage['completion_tokens']}
     usage.update({k: v for k, v in raw_usage.items() if k not in ('prompt_tokens', 'completion_tokens')})
-    extra = {'response_id': response.get('id') if isinstance(response.get('id'), str) else None,
-             'finish_reason': choices[0].get('finish_reason')}
+    extra = {'response_id': _short(response.get('id')), 'finish_reason': _short(choices[0].get('finish_reason'))}
     refusal = message.get('refusal')
     if isinstance(refusal, str) and refusal.strip():
         parsed = [_answer(q, 'refused', provider_type='message_refusal') for q in request.questions]
@@ -491,7 +484,7 @@ def openrouter_structured_parse(request, response):
     if not isinstance(content, str) or not content or len(content) > MAX_STRUCTURED_CONTENT_CHARS:
         _bad('message content must be bounded JSON text')
     try:
-        document = _strict_json(content)
+        document = strict_json_loads(content)
     except (ValueError, RecursionError):
         _bad('message content is not strict JSON')
     _fields(document, {'answers'}, set(), 'content')

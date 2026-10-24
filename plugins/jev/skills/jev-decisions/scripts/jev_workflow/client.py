@@ -14,7 +14,7 @@ import time
 
 from . import VERSION, capabilities, credentials, providers
 from .errors import CredentialError, ProviderError, ResponseError, TransportError, UsageError
-from .model import DecisionRequest
+from .model import DecisionRequest, strict_json_loads
 from .transport import UrllibTransport
 
 RESULT_SCHEMA = 'jev.result.v1'
@@ -72,21 +72,6 @@ class DecisionResult:
     @property
     def answers(self):
         return self.to_dict()['answers']
-
-
-def _strict_loads(data):
-    def unique(pairs):
-        result = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError('duplicate key')
-            result[key] = value
-        return result
-
-    def constant(_name):
-        raise ValueError('non-finite number')
-
-    return json.loads(data, object_pairs_hook=unique, parse_constant=constant)
 
 
 def _bounded(value, low, high, name):
@@ -207,7 +192,7 @@ class DecisionClient:
             raise ProviderError(f'provider request failed (HTTP {status})', status=status)
         try:
             text = response.body.decode('utf-8')
-            document = _strict_loads(text)
+            document = strict_json_loads(text)
         except (UnicodeDecodeError, ValueError, RecursionError):
             raise ResponseError('provider response rejected: body is not strict UTF-8 JSON') from None
         if key in text:

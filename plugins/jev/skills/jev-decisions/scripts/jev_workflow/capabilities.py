@@ -40,7 +40,7 @@ PROVIDERS = {
                 'box': {'provider_documents': False, 'client_implements': False},
                 'limits': {'questions': [1, 400], 'choices': [2, 255], 'levels': [2, 10],
                            'input_json_bytes': 262_144, 'input_json_depth': 32, 'input_json_values': 10_000},
-                'retry_statuses': [429, 500, 502, 503, 504],
+                'retry_statuses': [429, 503],
                 'origin': dict(_DECISION_ORIGIN),
                 'score_scale': 'expected_level_index_0_to_n_minus_1',
             },
@@ -74,7 +74,7 @@ PROVIDERS = {
                         'requires': 'experimental_images opt-in and pinned jev-1.14.0; pair with a presence noul'},
                 'limits': {'questions': [1, 400], 'choices': [2, 255], 'levels': [2, 10],
                            'body_bytes': 33_554_432, 'nesting': 64},
-                'retry_statuses': [429, 500, 502, 503, 504, 529],
+                'retry_statuses': [429, 503, 529],
                 'origin': dict(_DECISION_ORIGIN),
                 'score_scale': 'expected_level_index_0_to_n_minus_1',
             },
@@ -89,7 +89,7 @@ PROVIDERS = {
                 'endpoint': 'https://openrouter.ai/api/alpha/decisions',
                 'default_model': '~typesafe/jev-latest',
                 'models': {
-                    '~typesafe/jev-latest': {'match': 'alias', 'alias_pattern': r'^typesafe/jev-',
+                    '~typesafe/jev-latest': {'match': 'alias', 'alias_pattern': r'^typesafe/jev-\d+\.\d+(?:\.\d+)?(?:-[0-9]{8})?$',
                                              'upstream_provider': 'TypeSafe', 'images': False, 'box': False},
                     'typesafe/jev-1.14': {'match': 'snapshot', 'upstream_provider': 'TypeSafe',
                                           'images': False, 'box': False},
@@ -105,7 +105,7 @@ PROVIDERS = {
                 'images': {'provider_documents': True, 'client_implements': False},
                 'box': {'provider_documents': True, 'client_implements': False},
                 'limits': {'questions': [1, 400], 'choices': [2, 255], 'levels': [2, 10]},
-                'retry_statuses': [429, 502, 503, 524, 529],
+                'retry_statuses': [429, 503, 529],
                 'origin': {
                     'values': 'provider_decision_model_via_openrouter',
                     'confidence': 'provider_reported_optional',
@@ -127,7 +127,7 @@ PROVIDERS = {
                 'images': {'provider_documents': True, 'client_implements': False},
                 'box': {'provider_documents': False, 'client_implements': False},
                 'limits': {'questions': [1, 100], 'choices': [2, 100], 'levels': [2, 10]},
-                'retry_statuses': [429, 502, 503, 524, 529],
+                'retry_statuses': [429, 503, 529],
                 'origin': {
                     'values': 'llm_generated_json_uncalibrated',
                     'confidence': 'not_provided',
@@ -149,7 +149,7 @@ def provider_names():
 
 
 def _provider(name):
-    if name not in PROVIDERS:
+    if not isinstance(name, str) or name not in PROVIDERS:
         raise UsageError(f'provider must be one of: {", ".join(PROVIDERS)}')
     return PROVIDERS[name]
 
@@ -158,10 +158,10 @@ def route_key(provider, openrouter_mode=None):
     spec = _provider(provider)
     if provider == 'openrouter':
         mode = openrouter_mode or spec['default_route']
-        if mode not in OPENROUTER_MODES:
+        if not isinstance(mode, str) or mode not in OPENROUTER_MODES:
             raise UsageError('openrouter mode must be decisions or structured')
         return mode
-    if openrouter_mode not in (None, spec['default_route']):
+    if openrouter_mode is not None and openrouter_mode != spec['default_route']:
         raise UsageError('--openrouter-mode applies only to --provider openrouter')
     return spec['default_route']
 
@@ -202,7 +202,7 @@ def reported_model_ok(requested, reported, caps):
     if match == 'exact':
         return reported == requested
     if match == 'alias':
-        return re.match(caps['alias_pattern'], reported) is not None
+        return re.fullmatch(caps['alias_pattern'], reported) is not None
     return reported == requested or reported.startswith(requested + '-')
 
 

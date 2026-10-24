@@ -14,8 +14,8 @@ import sys
 
 from . import VERSION, capabilities
 from .client import DecisionClient
-from .errors import EXIT_OK, JevError, UsageError
-from .model import load_request_text
+from .errors import EXIT_OK, JevError, ResponseError, UsageError
+from .model import load_request_text, strict_json_loads
 
 PROG = 'jev-workflow'
 MAX_INPUT_BYTES = 48 * 1024 * 1024
@@ -91,9 +91,9 @@ def _load_request(args, raw_text=None):
     if not args.image:
         return load_request_text(text)
     try:
-        raw = json.loads(text)
-    except ValueError:
-        raise UsageError('request is not valid JSON') from None
+        raw = strict_json_loads(text)
+    except (ValueError, RecursionError):
+        raise UsageError('request is not strict JSON') from None
     if not isinstance(raw, dict):
         raise UsageError('request must be an object')
     raw = dict(raw)
@@ -167,10 +167,9 @@ def cmd_parse(args):
     client, config = _client(args)
     text = _read_input(args.response, '--response')
     try:
-        document = json.loads(text)
-    except ValueError:
-        from .errors import ResponseError
-        raise ResponseError('saved response is not valid JSON') from None
+        document = strict_json_loads(text)
+    except (ValueError, RecursionError):
+        raise ResponseError('saved response is not strict JSON (duplicate keys and NaN/Infinity are rejected)') from None
     result = client.parse(request, document, provenance={'source': 'saved response (offline parse)'}).to_dict()
     result['config'] = config
     return result

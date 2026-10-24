@@ -3,6 +3,8 @@
 No dotenv files, keychains, password managers, config files or command-line
 arguments are consulted. Values are never logged or returned in output.
 """
+import json
+
 from . import capabilities
 from .errors import CredentialError
 
@@ -23,6 +25,9 @@ def read_api_key(provider, environ):
 
 def redact(text, secrets):
     for secret in secrets:
-        if secret and len(secret) >= 4:
-            text = text.replace(secret, REDACTED)
+        if not secret or len(secret) < 4:
+            continue
+        # Also the JSON-escaped spelling, in case the value contains quotes or backslashes.
+        for form in {secret, json.dumps(secret)[1:-1], json.dumps(secret, ensure_ascii=False)[1:-1]}:
+            text = text.replace(form, REDACTED)
     return text

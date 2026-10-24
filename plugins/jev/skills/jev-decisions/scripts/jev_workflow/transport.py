@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 import http.client
 import socket
 import ssl
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -53,42 +54,64 @@ def _kept_headers(headers):
     return kept
 
 
+def _allowed_url(url):
+    parts = urllib.parse.urlsplit(url)
+    return parts.scheme == 'https' and bool(parts.hostname) and not parts.username and not parts.password
+
+
 class UrllibTransport:
+    """Errors raised before the request is fully sent are retryable; anything after
+    the body was sent (read timeouts, resets, protocol corruption) is reported as
+    ``outcome_unknown`` and never replayed, because the provider may have billed it."""
+
     def __init__(self, *, max_response_bytes=MAX_RESPONSE_BYTES, opener_factory=build_opener):
         self.max_response_bytes = max_response_bytes
         self._opener_factory = opener_factory
 
+    def _read_bounded(self, response, deadline):
+        reader = getattr(response, 'read1', None) or response.read
+        chunks, total = [], 0
+        while True:
+            if time.monotonic() > deadline:
+                raise TransportError('provider response exceeded the attempt timeout', code='outcome_unknown')
+            chunk = reader(65536)
+            if not chunk:
+                return b''.join(chunks)
+            total += len(chunk)
+            if total > self.max_response_bytes:
+                raise TransportError('provider response exceeds the size limit', code='response_too_large')
+            chunks.append(chunk)
+
     def send(self, url, headers, body, timeout):
-        parts = urllib.parse.urlsplit(url)
-        if parts.scheme != 'https' or not parts.hostname or parts.username or parts.password:
+        if not _allowed_url(url):
             raise TransportError('refusing a non-HTTPS or credential-bearing URL', code='endpoint_refused')
+        deadline = time.monotonic() + timeout
         request = urllib.request.Request(url, data=body, headers=dict(headers), method='POST')
         try:
             with self._opener_factory().open(request, timeout=timeout) as response:
-                raw = response.read(self.max_response_bytes + 1)
-                if len(raw) > self.max_response_bytes:
-                    raise TransportError('provider response exceeds the size limit', code='response_too_large')
+                raw = self._read_bounded(response, deadline)
                 return HttpResponse(response.status, raw, _kept_headers(response.headers))
         except TransportError:
             raise
         except urllib.error.HTTPError as error:
             return self._error_response(error)
-        except http.client.HTTPException as error:
-            # Includes IncompleteRead/RemoteDisconnected/BadStatusLine: protocol
-            # corruption may already have been billed, so it is not retried.
-            raise TransportError(f'invalid HTTP response ({type(error).__name__})', code='http_protocol_error') from None
         except urllib.error.URLError as error:
+            # urllib raises URLError only around connect/send, before any response:
+            # DNS failure, refused connection, connect timeout.
             reason = error.reason
             if isinstance(reason, ssl.SSLError):
                 raise TransportError(f'TLS failure ({type(reason).__name__})', code='tls_error') from None
-            retryable = isinstance(reason, (socket.timeout, TimeoutError, ConnectionError, socket.gaierror, OSError))
-            raise TransportError(f'connection failed ({type(reason).__name__})', retryable=retryable) from None
+            raise TransportError(f'connection failed before a response ({type(reason).__name__})',
+                                 retryable=True, code='connection_failed') from None
+        except http.client.HTTPException as error:
+            raise TransportError(f'invalid HTTP response; outcome unknown ({type(error).__name__})',
+                                 code='outcome_unknown') from None
         except ssl.SSLError as error:
-            raise TransportError(f'TLS failure ({type(error).__name__})', code='tls_error') from None
-        except (socket.timeout, TimeoutError):
-            raise TransportError('request timed out', retryable=True, code='timeout') from None
+            raise TransportError(f'TLS failure; outcome unknown ({type(error).__name__})', code='outcome_unknown') from None
         except OSError as error:
-            raise TransportError(f'connection failed ({type(error).__name__})', retryable=True) from None
+            # Includes TimeoutError and ConnectionResetError after the body was sent.
+            raise TransportError(f'no complete response; outcome unknown ({type(error).__name__})',
+                                 code='outcome_unknown') from None
         except ValueError as error:
             raise TransportError(f'request could not be sent ({type(error).__name__})') from None
 

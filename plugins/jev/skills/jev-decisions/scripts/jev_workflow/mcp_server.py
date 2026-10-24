@@ -15,7 +15,7 @@ from . import VERSION, capabilities
 from .client import DecisionClient
 from .credentials import redact
 from .errors import JevError, UsageError
-from .model import parse_request
+from .model import parse_request, strict_json_loads
 
 SUPPORTED_PROTOCOL_VERSIONS = ('2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05')
 MAX_LINE_BYTES = 1024 * 1024
@@ -211,7 +211,7 @@ class MCPServer:
             if not line.strip():
                 continue
             try:
-                message = json.loads(line.decode('utf-8'))
+                message = strict_json_loads(line.decode('utf-8'))
             except (UnicodeDecodeError, ValueError, RecursionError):
                 self._write(stdout, _rpc_error(None, -32700, 'Parse error'))
                 continue

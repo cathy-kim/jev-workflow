@@ -246,7 +246,7 @@ class UrllibTransportTests(unittest.TestCase):
             (http.client.RemoteDisconnected(secret), False),
             (urllib.error.URLError(TimeoutError(secret)), True),
             (urllib.error.URLError(ConnectionRefusedError(secret)), True),
-            (TimeoutError(secret), True),
+            (TimeoutError(secret), False),  # after send: outcome unknown, never replayed
         ]
         for error, retryable in cases:
             with self.subTest(error=type(error).__name__):

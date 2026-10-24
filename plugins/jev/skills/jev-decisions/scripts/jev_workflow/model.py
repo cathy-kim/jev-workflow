@@ -103,6 +103,22 @@ class DecisionRequest:
         return {q.type for q in self.questions}
 
 
+def strict_json_loads(text):
+    """json.loads that rejects duplicate keys and NaN/Infinity (raises ValueError)."""
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('duplicate JSON key')
+            result[key] = value
+        return result
+
+    def constant(name):
+        raise ValueError(f'non-finite number {name}')
+
+    return json.loads(text, object_pairs_hook=unique, parse_constant=constant)
+
+
 def option_key(value):
     """Type-aware identity: the string 'true' and boolean True never collide."""
     return (type(value).__name__, value)
@@ -190,12 +206,12 @@ def _parse_question(raw, index):
     if not isinstance(raw, dict):
         _fail(f'{where} must be an object')
     kind = raw.get('type')
-    kind = TYPE_ALIASES.get(kind, kind)
+    kind = TYPE_ALIASES.get(kind, kind) if isinstance(kind, str) else None
     if kind not in QUESTION_TYPES:
         _fail(f'{where}.type must be one of noul, predicate, choice, score, box')
     _check_fields(raw, _QUESTION_FIELDS[kind], where)
     qid = raw.get('id')
-    if not isinstance(qid, str) or not ID_PATTERN.match(qid):
+    if not isinstance(qid, str) or not ID_PATTERN.fullmatch(qid):
         _fail(f'{where}.id must match {ID_PATTERN.pattern}')
     instructions = _text(raw.get('instructions'), f'{where}.instructions', MAX_INSTRUCTIONS_CHARS)
     if kind == 'noul':
@@ -260,12 +276,12 @@ def _parse_image(raw, index, state_strings):
     where = f'images[{index}]'
     _check_fields(raw, {'ref', 'format', 'data_base64'}, where)
     ref = raw.get('ref')
-    if not isinstance(ref, str) or not IMAGE_REF_PATTERN.match(ref):
+    if not isinstance(ref, str) or not IMAGE_REF_PATTERN.fullmatch(ref):
         _fail(f'{where}.ref must match {IMAGE_REF_PATTERN.pattern}')
     if not any(ref in text for text in state_strings):
         _fail(f'{where}.ref must appear inside state so the image has a position')
     fmt = raw.get('format')
-    fmt = {'jpeg': 'jpg'}.get(fmt, fmt)
+    fmt = {'jpeg': 'jpg'}.get(fmt, fmt) if isinstance(fmt, str) else None
     if fmt not in ('png', 'jpg'):
         _fail(f'{where}.format must be png or jpeg')
     encoded = raw.get('data_base64')
@@ -314,21 +330,8 @@ def parse_request(raw):
 
 def load_request_text(text):
     """Parse JSON text strictly (duplicate keys and NaN/Infinity rejected)."""
-    def unique(pairs):
-        result = {}
-        for key, value in pairs:
-            if key in result:
-                _fail('request JSON contains a duplicate key')
-            result[key] = value
-        return result
-
-    def constant(name):
-        _fail(f'request JSON contains non-finite number {name}')
-
     try:
-        raw = json.loads(text, object_pairs_hook=unique, parse_constant=constant)
-    except UsageError:
-        raise
+        raw = strict_json_loads(text)
     except (ValueError, RecursionError):
-        _fail('request is not valid JSON')
+        _fail('request is not strict JSON (duplicate keys and NaN/Infinity are rejected)')
     return parse_request(raw)

@@ -64,7 +64,8 @@ def source_files():
     files = {}
     for path in sorted(root.rglob('*')):
         relative = path.relative_to(root)
-        if set(relative.parts) & _EXCLUDED_PARTS or path.suffix == '.pyc' or relative.as_posix() == MANIFEST:
+        if set(relative.parts) & _EXCLUDED_PARTS or path.suffix == '.pyc' or \
+                any(part.startswith('.') for part in relative.parts):
             continue
         if path.is_symlink():
             raise UsageError('canonical skill contains a symlink; refusing to install')
@@ -169,9 +170,17 @@ def install(runtime, target, *, dry_run=False, backup=False):
                     'installed_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
                     'backup': plan['backup_relative_to_target'], 'files': files}
         (staging / MANIFEST).write_text(json.dumps(manifest, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+        os.chmod(staging, 0o755)
+        moved_backup = None
         if plan['backup_relative_to_target']:
-            os.replace(destination, resolved / plan['backup_relative_to_target'])
-        os.replace(staging, destination)
+            moved_backup = resolved / plan['backup_relative_to_target']
+            os.replace(destination, moved_backup)
+        try:
+            os.replace(staging, destination)
+        except BaseException:
+            if moved_backup is not None and not destination.exists():
+                os.replace(moved_backup, destination)  # put the previous install back
+            raise
     except BaseException:
         shutil.rmtree(staging, ignore_errors=True)
         raise
