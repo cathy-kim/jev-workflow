@@ -1,6 +1,6 @@
 # Provider and evaluation boundaries
 
-The workflow is portable; the included parser is intentionally not a universal adapter. No external provider, evaluation SDK or model is installed by this package.
+The workflow is portable; `decision_kit.py` is intentionally not a universal adapter. The separate opt-in [live client](live-client.md) implements three distinct routes (OpenAI Decisions, TypeSafe System One, OpenRouter Decisions/structured) without treating them as wire-compatible. No evaluation SDK or model is installed by this package.
 
 ## Keep adapters distinct
 

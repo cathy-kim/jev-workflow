@@ -1,6 +1,39 @@
 # Installation and portability
 
-The public edition is version **1.1.0**. The marketplace is `jev-workflow`, the plugin is `jev`, and the skill is `jev-decisions`. Installation supplies instructions and offline files only: no hooks, MCP server, API client, paid calls or credential discovery. This document describes user-initiated installation; the included tests do not modify installed settings.
+The public edition is version **1.2.0**. The marketplace is `jev-workflow`, the plugin is `jev`, and the skill is `jev-decisions`. Installation supplies instructions, offline tools and an opt-in live client: no hooks, automatic paid calls, automatic MCP server start or credential discovery. Paid calls happen only with `--live` or an operator-enabled MCP live mode. This document describes user-initiated installation; the included tests do not modify installed settings.
+
+## Runtime adapters and MCP
+
+One canonical skill folder serves every runtime; each runtime discovers it through its own documented mechanism. The bundled installer copies that folder into a directory you name and prints, but never runs, the runtime's MCP registration command:
+
+```bash
+python3 plugins/jev/skills/jev-decisions/scripts/jev_cli.py install --runtime codex  --target <repo>/.agents/skills --dry-run
+python3 plugins/jev/skills/jev-decisions/scripts/jev_cli.py install --runtime claude --target <project>/.claude/skills
+python3 plugins/jev/skills/jev-decisions/scripts/jev_cli.py install --runtime hermes --target <project>/.hermes/skills
+python3 plugins/jev/skills/jev-decisions/scripts/jev_cli.py uninstall --target <project>/.hermes/skills
+```
+
+| Runtime | Discovery | Invocation | MCP registration (manual) |
+|---|---|---|---|
+| Claude Code | plugin marketplace, `--plugin-dir`, or `.claude/skills` | `/jev:jev-decisions` / `/jev-decisions` | `claude mcp add --scope project jev-workflow -- python3 <skill>/scripts/jev_cli.py mcp-serve` |
+| Codex | `.agents/skills` (repo or `~`) | `$jev-decisions` | `codex mcp add jev-workflow -- python3 <skill>/scripts/jev_cli.py mcp-serve` |
+| Hermes | `<project>/.hermes/skills` (after `hermes skills trust`) or `$HERMES_HOME/skills/<category>` | `/jev-decisions` | `hermes mcp add jev-workflow --command python3 --args <skill>/scripts/jev_cli.py mcp-serve` |
+| Other | load `SKILL.md` by path | runtime-specific | any stdio MCP client |
+
+The installer refuses an existing different copy unless `--backup` is given, refuses symlinked targets and overlap with its own source, writes `.jev-install.json` with file hashes, reinstalls idempotently and restores the backup on `uninstall` only when installed files are unmodified. It does not edit runtime configuration, enable plugins or start servers. The Claude plugin manifest declares no `mcpServers`. The MCP server starts offline (validation and parsing tools only); see the [live client reference](../plugins/jev/skills/jev-decisions/references/live-client.md) for live mode, environment passing and limits.
+
+## Installable command
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install .
+jev-workflow --version
+jev-workflow providers
+jev-workflow-mcp --help
+```
+
+The wheel contains only the `jev_workflow` package (standard library, no dependencies). Run `install`/`uninstall` from a checkout or extracted skill bundle, because they copy the whole skill folder.
 
 ## Claude Code marketplace
 
@@ -110,6 +143,6 @@ claude plugin validate ./plugins/jev
 claude plugin validate ./.claude-plugin/marketplace.json
 ```
 
-The first command runs the 84-test offline contract suite. Package tests additionally check metadata, relative links, prohibited files, a relocated runtime-neutral copy, and the real demo exit codes. `-B` prevents bytecode caches in the distributed tree. Local tests use temporary directories; set `TMPDIR` to a trusted scratch directory if desired.
+The first command runs the 84-test offline contract suite. Package tests additionally check metadata, relative links, prohibited files, a relocated runtime-neutral copy, the real demo exit codes, the three provider contracts with synthetic fixtures, CLI exit codes, a real MCP subprocess handshake and installer rollback in temporary directories. `-B` prevents bytecode caches in the distributed tree. Local tests use temporary directories; set `TMPDIR` to a trusted scratch directory if desired.
 
 No live API compatibility, model accuracy, calibration, current model availability, or production readiness follows from these checks. See [security boundaries](../SECURITY.md) before adapting the starter.

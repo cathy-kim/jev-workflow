@@ -80,7 +80,7 @@ class ResearchDocumentationTests(unittest.TestCase):
             self.assertIn('/tree/', by_id[code]['resolved_url'])
             self.assertIn('/html/', by_id[paper]['resolved_url'])
         self.assertIn('eight-page', (ROOT / 'README.md').read_text(encoding='utf-8'))
-        self.assertIn('version **1.1.0**', (ROOT / 'docs/installation.md').read_text(encoding='utf-8'))
+        self.assertIn('version **1.2.0**', (ROOT / 'docs/installation.md').read_text(encoding='utf-8'))
 
     def test_companion_is_discoverable_and_honest(self):
         page = (ROOT / 'site/research.html').read_text()

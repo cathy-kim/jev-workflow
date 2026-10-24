@@ -29,6 +29,14 @@ jobs:
         run: |
           python3 -B -m unittest discover -s tests -v
           python3 -B -m unittest discover -s scripts -p 'test_*.py' -v
+      - name: Isolated wheel install smoke (no provider calls)
+        run: |
+          python3 -m venv "$RUNNER_TEMP/jev-venv"
+          "$RUNNER_TEMP/jev-venv/bin/python" -m pip install --quiet .
+          "$RUNNER_TEMP/jev-venv/bin/jev-workflow" --version
+          "$RUNNER_TEMP/jev-venv/bin/jev-workflow" providers --compact > /dev/null
+          "$RUNNER_TEMP/jev-venv/bin/jev-workflow" doctor --compact
+          "$RUNNER_TEMP/jev-venv/bin/jev-workflow-mcp" --help > /dev/null
       - name: Rebuild static site and portable downloads
         run: |
           python3 scripts/build_site.py

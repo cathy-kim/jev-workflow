@@ -1,0 +1,20 @@
+{
+  "id": "gen-synthetic-0002",
+  "model": "example/judge-model",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "{\"answers\": {\"billing\": {\"status\": \"answered\", \"probability\": 0.8}, \"team\": {\"status\": \"answered\", \"choice\": \"billing\", \"probabilities\": {\"billing\": 0.7, \"technical\": 0.2, \"other\": 0.1}}, \"urgency\": {\"status\": \"not_applicable\", \"level_probabilities\": null}}}",
+        "refusal": null
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 300,
+    "completion_tokens": 80,
+    "total_tokens": 380
+  }
+}

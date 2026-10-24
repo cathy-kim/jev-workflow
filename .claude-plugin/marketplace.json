@@ -4,14 +4,14 @@
     "name": "cathy-kim"
   },
   "metadata": {
-    "description": "Portable offline-first Jev decision workflow",
-    "version": "1.1.0"
+    "description": "Portable offline-first Jev decision workflow with an opt-in multi-provider client",
+    "version": "1.2.0"
   },
   "plugins": [
     {
       "name": "jev",
-      "version": "1.1.0",
-      "description": "Offline-first typed decision workflow: design, implement, test, evaluate, adopt. No hooks, MCP, credentials or automatic API calls.",
+      "version": "1.2.0",
+      "description": "Offline-first typed decision workflow with an opt-in live client for OpenAI Decisions, TypeSafe and OpenRouter. No hooks or automatic API calls; the MCP server is never auto-started.",
       "author": {
         "name": "cathy-kim"
       },
