@@ -1,0 +1,41 @@
+{
+  "model": "jev-1.14.0",
+  "answers": {
+    "billing": {
+      "type": "noul",
+      "noul": 0.93
+    },
+    "team": {
+      "type": "choice",
+      "choice": "billing",
+      "confidence": 0.9,
+      "probabilities": {
+        "billing": 0.92,
+        "technical": 0.05,
+        "other": 0.03
+      }
+    },
+    "urgency": {
+      "type": "score",
+      "score": 1.43,
+      "confidence": 0.35,
+      "legend": {
+        "0": "Can wait",
+        "1": "This week",
+        "2": {
+          "label": "Today",
+          "description": "Blocking work right now."
+        }
+      },
+      "probabilities": {
+        "0": 0.0,
+        "1": 0.57,
+        "2": 0.43
+      }
+    }
+  },
+  "usage": {
+    "input_tokens": 140,
+    "output_tokens": 12
+  }
+}

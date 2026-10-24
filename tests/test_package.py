@@ -29,7 +29,7 @@ class PackageTests(unittest.TestCase):
     def test_manifest(self):
         manifest = json.loads((PLUGIN / '.claude-plugin/plugin.json').read_text())
         self.assertEqual(manifest['name'], 'jev')
-        self.assertEqual(manifest['version'], '1.1.0')
+        self.assertEqual(manifest['version'], '1.2.0')
         self.assertEqual(manifest['repository'], PUBLIC_URL)
         self.assertEqual(manifest['author'], {'name': 'cathy-kim'})
         self.assertEqual(manifest['license'], 'MIT')
@@ -43,7 +43,7 @@ class PackageTests(unittest.TestCase):
         entry = marketplace['plugins'][0]
         self.assertEqual(entry['name'], 'jev')
         self.assertEqual(entry['source'], './plugins/jev')
-        self.assertEqual(entry['version'], '1.1.0')
+        self.assertEqual(entry['version'], '1.2.0')
         self.assertEqual(entry['repository'], PUBLIC_URL)
 
     def test_one_canonical_skill(self):
@@ -90,6 +90,18 @@ class PackageTests(unittest.TestCase):
             'references/research-models.md', 'references/research-sources.json',
             'references/videojev.md', 'references/mjev-spatial.md', 'references/jeva.md',
             'scripts/research_kit.py',
+            'scripts/jev_cli.py', 'references/live-client.md',
+            'scripts/jev_workflow/__init__.py', 'scripts/jev_workflow/capabilities.py',
+            'scripts/jev_workflow/cli.py', 'scripts/jev_workflow/client.py',
+            'scripts/jev_workflow/credentials.py', 'scripts/jev_workflow/errors.py',
+            'scripts/jev_workflow/installer.py', 'scripts/jev_workflow/mcp_server.py',
+            'scripts/jev_workflow/model.py', 'scripts/jev_workflow/providers.py',
+            'scripts/jev_workflow/transport.py',
+            'scripts/examples/providers/request.synthetic.json',
+            'scripts/examples/providers/openai.response.synthetic.json',
+            'scripts/examples/providers/typesafe.response.synthetic.json',
+            'scripts/examples/providers/openrouter-decisions.response.synthetic.json',
+            'scripts/examples/providers/openrouter-structured.response.synthetic.json',
             'templates/design-brief.md', 'templates/evaluation-record.json',
             'templates/question-registry.json', 'scripts/decision_kit.py',
             'scripts/test_decision_kit.py', 'scripts/examples/design.md',

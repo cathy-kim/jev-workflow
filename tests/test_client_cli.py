@@ -188,6 +188,20 @@ class CliOfflineTests(unittest.TestCase):
         self.assert_json(run(['validate', '--provider', 'typesafe', '--request', path,
                               '--image', f'img-1={text}', '--experimental-images']), 2)
 
+    def test_shipped_synthetic_examples_parse(self):
+        examples = SCRIPTS / 'examples' / 'providers'
+        request = examples / 'request.synthetic.json'
+        cases = [(['--provider', 'openai'], 'openai'), (['--provider', 'typesafe'], 'typesafe'),
+                 (['--provider', 'openrouter'], 'openrouter-decisions'),
+                 (['--provider', 'openrouter', '--openrouter-mode', 'structured', '--model', 'example/judge-model'],
+                  'openrouter-structured')]
+        for flags, name in cases:
+            with self.subTest(name=name):
+                result = self.assert_json(run(['parse', *flags, '--request', request,
+                                               '--response', examples / f'{name}.response.synthetic.json']))
+                self.assertEqual(result['summary']['answered'] + result['summary']['refused']
+                                 + result['summary']['not_applicable'], 3)
+
     def test_import_has_no_side_effects(self):
         probe = ("import sys\n"
                  "def guard(event, args):\n"
