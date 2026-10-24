@@ -44,6 +44,7 @@ def _count(value, where):
 
 
 PROBABILITY_SUM_TOLERANCE = 0.02
+BOOLEAN_USAGE_FLAGS = frozenset({'is_byok'})
 
 
 def _sum_ok(values):
@@ -76,8 +77,8 @@ def _usage_numbers(usage, where, required, depth=0):
             _bad(f'{where} has an invalid key')
         if isinstance(value, dict):
             clean[key] = _usage_numbers(value, f'{where}.{key}', (), depth + 1)
-        elif isinstance(value, bool) and key not in required and not key.endswith('tokens'):
-            clean[key] = value  # metadata flag (for example is_byok), never a count
+        elif key in BOOLEAN_USAGE_FLAGS and isinstance(value, bool):
+            clean[key] = value  # documented metadata flag, never a count or cost
         elif key == 'cost' or key.endswith('_cost'):
             if value is None:
                 clean[key] = None

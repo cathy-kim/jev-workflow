@@ -57,9 +57,9 @@ PROVIDERS = {
                 'models': {
                     'jev-1.14.0': {'match': 'exact', 'images': True, 'box': True},
                     'jev-1.13.0': {'match': 'exact', 'images': True, 'box': False},
-                    'jev-latest': {'match': 'alias', 'alias_pattern': r'^jev-\d+\.\d+\.\d+$',
+                    'jev-latest': {'match': 'alias', 'alias_pattern': r'^jev-[0-9]+\.[0-9]+\.[0-9]+$',
                                    'images': True, 'box': False},
-                    'jev-preview': {'match': 'alias', 'alias_pattern': r'^jev-\d+\.\d+\.\d+$',
+                    'jev-preview': {'match': 'alias', 'alias_pattern': r'^jev-[0-9]+\.[0-9]+\.[0-9]+$',
                                     'images': True, 'box': False},
                 },
                 'question_types': ['noul', 'choice', 'score', 'box'],
@@ -89,7 +89,7 @@ PROVIDERS = {
                 'endpoint': 'https://openrouter.ai/api/alpha/decisions',
                 'default_model': '~typesafe/jev-latest',
                 'models': {
-                    '~typesafe/jev-latest': {'match': 'alias', 'alias_pattern': r'^typesafe/jev-\d+\.\d+(?:\.\d+)?(?:-[0-9]{8})?$',
+                    '~typesafe/jev-latest': {'match': 'alias', 'alias_pattern': r'^typesafe/jev-[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[0-9]{8})?$',
                                              'upstream_provider': 'TypeSafe', 'images': False, 'box': False},
                     'typesafe/jev-1.14': {'match': 'snapshot', 'upstream_provider': 'TypeSafe',
                                           'images': False, 'box': False},
@@ -142,7 +142,7 @@ PROVIDERS = {
 }
 
 # Dated snapshot (-YYYYMMDD or -YYYY-MM-DD) and, for dotted versions, an extra patch number.
-_SNAPSHOT_SUFFIX = r'(?:\.\d+)?(?:-(?:\d{8}|\d{4}-\d{2}-\d{2}))?'
+_DATED_SUFFIX = r'(?:-(?:[0-9]{8}|[0-9]{4}-[0-9]{2}-[0-9]{2}))?'
 
 _UNLISTED = {'match': 'snapshot', 'images': False, 'box': False, 'unlisted': True}
 
@@ -206,7 +206,8 @@ def reported_model_ok(requested, reported, caps):
         return reported == requested
     if match == 'alias':
         return re.fullmatch(caps['alias_pattern'], reported) is not None
-    return re.fullmatch(re.escape(requested) + _SNAPSHOT_SUFFIX, reported) is not None
+    patch = r'(?:\.[0-9]+)?' if re.search(r'[0-9]+\.[0-9]+$', requested) else ''
+    return re.fullmatch(re.escape(requested) + patch + _DATED_SUFFIX, reported) is not None
 
 
 def matrix():

@@ -25,7 +25,9 @@ def read_api_key(provider, environ):
 
 def secret_forms(secret):
     """Raw and JSON-escaped spellings (quotes/backslashes are escaped inside JSON)."""
-    return {secret, json.dumps(secret)[1:-1], json.dumps(secret, ensure_ascii=False)[1:-1]}
+    once = {secret, json.dumps(secret)[1:-1], json.dumps(secret, ensure_ascii=False)[1:-1]}
+    # JSON text embedded in JSON (for example MCP content[0].text) escapes a second time.
+    return once | {json.dumps(form)[1:-1] for form in once}
 
 
 def contains_secret(text, secret):

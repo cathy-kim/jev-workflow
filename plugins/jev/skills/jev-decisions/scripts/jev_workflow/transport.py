@@ -44,6 +44,14 @@ def _track(factory):
         registry = getattr(_ACTIVE, 'connections', None)
         if registry is not None:
             registry.append(connection)
+            connect = connection.connect
+
+            def tracked_connect():
+                connect()
+                # urllib detaches conn.sock after the headers (Connection: close); keep
+                # the socket itself so the watchdog can also interrupt body reads.
+                registry.append(connection.sock)
+            connection.connect = tracked_connect
         return connection
     return make
 
@@ -68,8 +76,8 @@ def build_opener():
 
 def _abort(connections, fired):
     fired.set()
-    for connection in connections:
-        sock = getattr(connection, 'sock', None)
+    for connection in list(connections):
+        sock = connection if isinstance(connection, socket.socket) else getattr(connection, 'sock', None)
         try:
             if sock is not None:
                 sock.shutdown(socket.SHUT_RDWR)
@@ -77,7 +85,7 @@ def _abort(connections, fired):
             pass
         try:
             connection.close()
-        except (OSError, http.client.HTTPException):
+        except (OSError, http.client.HTTPException, AttributeError):
             pass
 
 

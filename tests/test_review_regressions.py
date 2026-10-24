@@ -341,3 +341,73 @@ class SecondReviewMiscTests(unittest.TestCase):
         response['usage']['input_tokens'] = True
         with self.assertRaises(ResponseError):
             DecisionClient('openrouter', environ={}).parse(parse_request(fresh(REQUEST)), response)
+
+
+class _BodyDrip(http.server.BaseHTTPRequestHandler):
+    def do_POST(self):  # noqa: N802
+        self.send_response(200)
+        self.send_header('Content-Length', '10')
+        self.end_headers()
+        for _ in range(10):
+            self.wfile.write(b'b')
+            self.wfile.flush()
+            time.sleep(1.5)
+
+    def log_message(self, *_args):
+        pass
+
+
+class ThirdReviewTests(unittest.TestCase):
+    def test_boolean_cost_rejected(self):
+        for key in ('cost', 'total_cost', 'web_search_requests'):
+            response = fresh(OPENROUTER_DECISIONS_RESPONSE)
+            response['usage'][key] = True
+            with self.subTest(key=key), self.assertRaises(ResponseError):
+                DecisionClient('openrouter', environ={}).parse(parse_request(fresh(REQUEST)), response)
+        response = fresh(OPENROUTER_DECISIONS_RESPONSE)
+        response['usage']['cost_details'] = {'upstream_inference_cost': True}
+        with self.assertRaises(ResponseError):
+            DecisionClient('openrouter', environ={}).parse(parse_request(fresh(REQUEST)), response)
+
+    def test_patch_suffix_only_for_dotted_versions_and_ascii_digits(self):
+        from jev_workflow import capabilities
+        caps = {'match': 'snapshot'}
+        for requested, reported in (('openai/gpt-5', 'openai/gpt-5.1'), ('gpt-6', 'gpt-6.5'),
+                                    ('gpt-6-luna', 'gpt-6-luna-２０２６１００１'),
+                                    ('typesafe/jev-1.14', 'typesafe/jev-1.14.٣')):
+            self.assertFalse(capabilities.reported_model_ok(requested, reported, caps), reported)
+        self.assertTrue(capabilities.reported_model_ok('typesafe/jev-1.14', 'typesafe/jev-1.14.0', caps))
+
+    def test_body_drip_bounded_near_timeout(self):
+        server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), _BodyDrip)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            from jev_workflow import transport as module
+            started = time.monotonic()
+            with mock.patch.object(module, '_allowed_url', lambda _url: True):
+                with self.assertRaises(TransportError):
+                    UrllibTransport().send(f'http://127.0.0.1:{server.server_port}/x', {}, b'{}', 2)
+            self.assertLess(time.monotonic() - started, 2.6)
+        finally:
+            server.shutdown()
+            server.server_close()
+
+    def test_watchdog_threads_do_not_leak(self):
+        class Opener:
+            def open(self, request, timeout):
+                raise urllib.error.URLError(ConnectionRefusedError('x'))
+        transport = UrllibTransport(opener_factory=lambda: Opener())
+        before = threading.active_count()
+        for _ in range(30):
+            with self.assertRaises(TransportError):
+                transport.send('https://api.openai.com/v1/decisions', {}, b'{}', 5)
+        time.sleep(0.1)
+        self.assertLessEqual(threading.active_count(), before + 1)
+        from jev_workflow import transport as module
+        self.assertIsNone(getattr(module._ACTIVE, 'connections', None))
+
+    def test_double_escaped_secret_redacted(self):
+        secret = 'ab"cd\\ef-0000'
+        inner = json.dumps({'echo': secret})
+        outer = json.dumps({'text': inner})
+        self.assertNotIn('ef-0000', redact(outer, [secret]))
