@@ -39,6 +39,16 @@ This bounded refresh covers the official Images, Box and model-alias documentati
 
 The bundled `decision_kit.py` remains **text-only and offline**. It rejects `assets` and `box`; documenting provider features does not enable them or authorize paid calls.
 
+## Refresh — checked 2026-10-24
+
+A second bounded check, made while adding the [live client](live-client.md), found these source-specific changes. It did not test live inference.
+
+- The Models page now maps **both** `jev-latest` and `jev-preview` to `jev-1.14.0`; the 2026-10-21 mapping above is superseded. Aliases still move, so the live client pins `jev-1.14.0` by default and records the reported model for aliases.
+- The current OpenAPI (`/v1/systemone`) marks Box `confidence` as `number | null`. The live client accepts `null` as "not provided" and never converts it to 0; Box remains limited to pinned `jev-1.14.0` with explicit `--experimental-images`.
+- The OpenAPI allows a 1-option Choice and 1-level Score while the guides recommend at least two; the live client requires 2–255 options and 2–10 levels.
+
+The live client (`scripts/jev_workflow`) implements images and Box only for TypeSafe direct and only on explicit opt-in. `decision_kit.py` is unchanged and stays text-only.
+
 ## Version refresh checklist
 
 1. Re-read the official [Models](https://docs.typesafe.ai/models), [Images](https://docs.typesafe.ai/images) and [Box](https://docs.typesafe.ai/go/box) pages. Record the check date and limited scope; resolve stale extractor/browser disagreements instead of copying cached aliases.
